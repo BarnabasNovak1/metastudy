@@ -642,7 +642,7 @@ const Auth = () => {
         <div className="max-w-7xl mx-auto flex items-center justify-between px-4 py-2.5">
           <div className="flex items-center gap-3">
             <button onClick={() => navigate("/")} className="inline-flex items-center gap-2">
-              <img src={MetaStudyLogo} alt="Logo" className="w-9 h-9 object-contain border-2 border-foreground" />
+              <img src={MetaStudyLogo} alt="Logo" className="w-9 h-9 object-contain" />
               <span className="font-bold tracking-tight hidden sm:inline">MetaStudy</span>
             </button>
             <Button variant="outline" size="sm" className="border-2 border-foreground" onClick={() => navigate("/")}>
@@ -663,7 +663,7 @@ const Auth = () => {
       <Card className="w-full max-w-sm relative z-10 border-2 border-foreground hard-shadow">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-3">
-            <img src={MetaStudyLogo} alt="Logo" className="w-14 h-14 object-contain border-2 border-foreground" />
+            <img src={MetaStudyLogo} alt="Logo" className="w-14 h-14 object-contain" />
           </div>
           <CardTitle className="text-2xl font-bold tracking-tight">MetaStudy</CardTitle>
           <CardDescription>Sign in or create an account to start studying</CardDescription>

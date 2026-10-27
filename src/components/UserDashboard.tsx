@@ -347,7 +347,7 @@ export function UserDashboard({ uid, counters, xp = 0, streakCurrent = 0, streak
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Study Dashboard</h2>
         <Select value={timeRange} onValueChange={(v: any) => setTimeRange(v)}>
-          <SelectTrigger className="w-32">
+          <SelectTrigger className="w-36 sm:w-40">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

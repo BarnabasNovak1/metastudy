@@ -229,7 +229,7 @@ export const StatsPopup = ({ userId, isOpen, onClose, counters, achievements }: 
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md max-h-[85vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <BarChart3 className="w-5 h-5" />
@@ -300,7 +300,7 @@ export const StatsPopup = ({ userId, isOpen, onClose, counters, achievements }: 
                             <select
                               value={goal.type}
                               onChange={(e) => updateGoalType(index, e.target.value as GoalType)}
-                              className="h-7 text-xs w-[145px] rounded-md border border-input/80 bg-background px-2 py-1 
+                              className="h-8 text-xs w-full min-w-0 rounded-md border border-input/80 bg-background px-2 py-1 
                                 text-foreground
                                 focus:outline-none focus:ring-1 focus:ring-ring
                                 appearance-none cursor-pointer
@@ -322,7 +322,7 @@ export const StatsPopup = ({ userId, isOpen, onClose, counters, achievements }: 
                               max={config.max}
                               value={tempGoals[index]?.target || config.defaultTarget}
                               onChange={(e) => updateGoalTarget(index, parseInt(e.target.value) || 1)}
-                              className="w-14 h-6 text-xs text-right"
+                              className="w-16 h-8 text-xs text-right shrink-0"
                             />
                             {tempGoals.length > 1 && (
                               <Button variant="ghost" size="sm" onClick={() => removeGoal(index)} className="h-6 w-6 p-0">

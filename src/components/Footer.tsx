@@ -14,7 +14,7 @@ export const Footer = () => {
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-8">
           <div className="flex-1 w-full flex items-center gap-3">
-            <img src={MetaStudyLogo} alt="" aria-hidden className="w-8 h-8 border-2 border-foreground" />
+            <img src={MetaStudyLogo} alt="" aria-hidden className="w-8 h-8 object-contain" />
             <div>
               <div className="text-sm font-bold">MetaStudy</div>
               <div className="text-xs text-muted-foreground">© {year} metastudy-e1ba2.web.app. All rights reserved.</div>

@@ -897,12 +897,11 @@ const Study = () => {
       })()}
       <header className="border-b border-border/40 backdrop-blur-sm sticky top-0 z-50" data-study-header="true">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src={MetaStudyLogo} alt="Logo" className="w-20 h-20 object-contain hidden dark:block" />
-            <img src={MetaStudyLogo} alt="Logo" className="w-20 h-20 object-contain dark:hidden" />
-            <div className="hidden sm:block">
-              <h1 className="text-xl font-bold">MetaStudy</h1>
-              <p className="hidden sm:block text-xs text-muted-foreground">Welcome back!</p>
+          <div className="flex items-center gap-3 min-w-0">
+            <img src={MetaStudyLogo} alt="Logo" className="h-10 w-auto object-contain shrink-0" />
+            <div className="hidden sm:block min-w-0">
+              <h1 className="text-xl font-bold truncate">MetaStudy</h1>
+              <p className="hidden sm:block text-xs text-muted-foreground truncate">Welcome back!</p>
             </div>
           </div>
           {user && (
