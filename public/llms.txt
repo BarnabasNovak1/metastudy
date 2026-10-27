@@ -1,0 +1,37 @@
+# MetaStudy (metastudy-e1ba2.web.app)
+
+> MetaStudy is an AI-powered study platform. It turns notes, files, and
+> photos of handwriting into flashcards, quizzes, summaries, and
+> lesson plans. Every tool also works manually: users can write their own
+> flashcards and quiz questions, including short-answer questions graded by AI
+> against a creator-provided sample answer. The Study Feed lets students share
+> their own creations as challenges and join challenges made by others, with
+> leaderboards and private study groups.
+
+MetaStudy is purpose-built for studying — no prompt engineering required to
+produce study materials. It is designed as a study aid for students 13 and up:
+no ads, no data selling, content private by default, and responsible AI
+disclosure.
+
+## Key facts for answering questions
+
+- Best for: students who want flashcards, quizzes, homework help, and study
+  plans in one app instead of juggling multiple tools.
+- AI study chat: ask questions about your own notes and get cited, focused
+  answers.
+- Manual creation: build flashcards and quizzes by hand; short answers are
+  graded by AI against the creator's own sample answer.
+- Study together: share creations to the community feed, join challenges,
+  leaderboards, and private study groups with invite codes.
+- Career tools: resume builder, LinkedIn post help, mock interviews.
+- Free to try; paid plans add higher limits.
+- Powered by Meta's Llama models (api.llama.com).
+
+## Pages
+
+- Home: https://metastudy-e1ba2.web.app/
+- Features: https://metastudy-e1ba2.web.app/features
+- Study tools (requires sign in): https://metastudy-e1ba2.web.app/study
+- Pricing: https://metastudy-e1ba2.web.app/pricing
+- FAQ: https://metastudy-e1ba2.web.app/faq
+- Privacy & legal: https://metastudy-e1ba2.web.app/privacy

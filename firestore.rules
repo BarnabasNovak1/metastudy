@@ -1,0 +1,464 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 1) Stripe extension products/prices (public read)
+    match /products/{productId} {
+      allow read: if true;
+      match /prices/{priceId} {
+        allow read: if true;
+      }
+    }
+
+    // 2) Stripe extension customer-scoped docs
+    match /customers/{uid} {
+      // Owners can read their own Stripe extension record
+      allow read: if request.auth != null && request.auth.uid == uid;
+
+      match /checkout_sessions/{docId} {
+        allow read: if request.auth != null && request.auth.uid == uid;
+        // Completion, payment status and Stripe IDs are extension-owned. Custom
+        // checkout is active, so clients cannot start extension checkout sessions.
+        // Extension mode must re-enable this with a configured price allowlist.
+        allow create: if false;
+      }
+      match /subscriptions/{docId} {
+        allow read: if request.auth != null && request.auth.uid == uid;
+      }
+      match /payments/{docId} {
+        allow read: if request.auth != null && request.auth.uid == uid;
+      }
+    }
+
+    // Public username index (read-only from clients; writes only via admin/cloud functions)
+    match /usernames/{uname} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Institutions directory (public read; server/admin writes only)
+    match /institutions/{institutionId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Helper: check auth and ownership
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Helper: plan checks via custom claims (for legacy features)
+    function hasAdvancedOrPro() {
+      return isSignedIn() && (
+        request.auth.token.stripeRole == 'advanced' ||
+        request.auth.token.stripeRole == 'pro'
+      );
+    }
+    
+    // Helper: check if user has Advanced or Pro plan (for Feed access)
+    // OPTIMIZED: Uses custom claims instead of Firestore get() - eliminates billable reads
+    function hasAdvancedPro() {
+      return isSignedIn() && (
+        request.auth.token.stripeRole in ['advanced', 'pro']
+      );
+    }
+
+    // Helper: check if either side has blocked the other
+    function eitherBlocked(a, b) {
+      return exists(/databases/$(database)/documents/users/$(a)/blocks/$(b))
+          || exists(/databases/$(database)/documents/users/$(b)/blocks/$(a));
+    }
+
+    // =============================
+    // RBAC HELPERS
+    // =============================
+    
+    // Check user role via custom claims (set by Cloud Functions)
+    function hasRole(role) {
+      return isSignedIn() && request.auth.token.role == role;
+    }
+    
+    function isModerator() {
+      return isSignedIn() && request.auth.token.role in ['moderator', 'admin', 'superadmin'];
+    }
+    
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.role in ['admin', 'superadmin'];
+    }
+    
+    function isSuperadmin() {
+      return isSignedIn() && request.auth.token.role == 'superadmin';
+    }
+
+    // PRIVACY: content is private-by-default. Cross-user reads are only
+    // allowed when the owner explicitly shared the item (set when posting
+    // to the feed). resource.data.shared is written by the owner client.
+    function isSharedContent() {
+      return isSignedIn() && resource.data.shared == true;
+    }
+
+    // 2b) Public profile mirror (server-maintained by Cloud Functions).
+    // Contains ONLY safe fields: username, photo, bio, education level, and
+    // public stats. All cross-user profile reads go through this collection.
+    match /public_profiles/{userId} {
+      allow read: if isSignedIn();
+      allow write: if false; // Cloud Functions only
+    }
+
+    // 3) User profiles + all subcollections
+    match /users/{userId} {
+      // PRIVACY: profile doc contains plan/billing fields -> owner (or admin) only.
+      // Other users read public_profiles/{userId} instead.
+      allow read: if isOwner(userId) || isAdmin();
+      
+      // Allow owner to update ONLY non-sensitive profile fields
+      // Sensitive fields (plan, monthly_quota, word_limit, username, etc.) can only be written by Cloud Functions
+      allow update: if isOwner(userId) && 
+        // Only allow these specific non-sensitive fields
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'first_name', 'last_name', 'photo_url', 'photoURL', 'institutionId', 'schoolName', 'bio', 'education_level',
+          'chat_retention_days'
+        ]) &&
+        // chat_retention_days may only be 0 (keep forever), 30, or 90
+        (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['chat_retention_days'])
+          || request.resource.data.chat_retention_days in [0, 30, 90]);
+      
+      // Block create (only onAuthCreate cloud function should create) and delete
+      allow create, delete: if false;
+
+      // Note: Server-only fields (plan, planTier, verifiedInstitution, emailVerified, renews_at, monthly_quota, word_limit, username)
+      // are exclusively written by Cloud Functions or admin SDK.
+
+      // PRIVATE-BY-DEFAULT: only the owner can read their study content.
+      // Cross-user reads are allowed ONLY for items explicitly shared to the
+      // feed (shared == true, set at post time). (MUST come before wildcard rule)
+      match /quizzes/{docId} {
+        allow read: if isOwner(userId) || isSharedContent();
+        allow write: if isOwner(userId);
+      }
+      match /flashcards/{docId} {
+        allow read: if isOwner(userId) || isSharedContent(); // legacy collection
+        allow write: if isOwner(userId);
+      }
+      match /flashcard_sets/{setId} {
+        allow read: if isOwner(userId) || isSharedContent();
+        allow write: if isOwner(userId);
+        
+        // Cards are readable cross-user only when the parent set is shared
+        match /flashcards/{cardId} {
+          allow read: if isOwner(userId)
+            || (isSignedIn() && get(/databases/$(database)/documents/users/$(userId)/flashcard_sets/$(setId)).data.shared == true);
+          allow write: if isOwner(userId);
+        }
+      }
+      match /summaries/{docId} {
+        allow read: if isOwner(userId) || isSharedContent();
+        allow write: if isOwner(userId);
+      }
+      match /lessons/{docId} {
+        allow read: if isOwner(userId) || isSharedContent();
+        allow write: if isOwner(userId);
+      }
+
+
+      // Runs: owner-only. Public challenge stats are mirrored to public_profiles.
+      match /runs/{runId} {
+        allow read: if isOwner(userId);
+        allow write: if isOwner(userId);
+      }
+
+      // A recursive wildcard can match the root user document too.
+      // Require a subcollection and preserve explicit billing/social gates.
+      match /{collectionName}/{docId}/{nested=**} {
+        allow read, write: if isOwner(userId) && !(collectionName in [
+          'meta', 'usage', 'career_resumes', 'linkedin_posts', 'career_plans',
+          'interview_sessions', 'blocks', 'friend_requests', 'friends',
+          'notifications', 'emoji_reactions'
+        ]);
+      }
+
+      // Blocks subcollection: owner-only read/write (moved here to access userId)
+      match /blocks/{otherUid} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // Friends: allow counterparty to manage mirrored friend requests
+      match /friend_requests/{otherUid} {
+        // Owner can read/write their own friend_requests
+        allow read, write: if isOwner(userId);
+
+        // Counterparty can create an incoming request on recipient
+        allow create: if isSignedIn() && request.auth.uid == otherUid
+          && request.resource.data.type == 'incoming'
+          && request.resource.data.from == request.auth.uid
+          && request.resource.data.to == userId
+          && request.resource.data.status == 'pending'
+          && !eitherBlocked(userId, otherUid);
+
+        // Either party may delete to decline/cancel
+        allow delete: if isSignedIn() && (
+          (request.auth.uid == userId) ||      // recipient declines
+          (request.auth.uid == otherUid)       // sender cancels
+        );
+      }
+
+      // Friends list: allow creating reciprocal doc by either party on accept
+      match /friends/{otherUid} {
+        // PRIVACY: owner-only reads; friends_count is mirrored to public_profiles
+        allow read: if isOwner(userId);
+        allow write: if isOwner(userId);
+
+        // Counterparty can create/update reciprocal friend doc
+        allow create, update: if isSignedIn() && request.auth.uid == otherUid
+          && request.resource.data.friend_uid == userId
+          && !eitherBlocked(userId, otherUid);
+
+        // Deleting friendship by either party removes reciprocal link
+        allow delete: if isSignedIn() && (request.auth.uid == userId || request.auth.uid == otherUid);
+      }
+
+      // Notifications: allow others to create a poke/reaction for the owner
+      match /notifications/{notifId} {
+        // Owner full control
+        allow read, write: if isOwner(userId);
+
+        // Non-owner can create a poke/reaction for the recipient
+        allow create: if isSignedIn()
+          && (request.resource.data.type == 'poke' || request.resource.data.type == 'reaction')
+          && request.resource.data.from == request.auth.uid
+          && request.resource.data.read == false
+          && !eitherBlocked(userId, request.auth.uid);
+      }
+
+      // Emoji Reactions: allow friends to send emoji reactions to each other
+      match /emoji_reactions/{fromUserId} {
+        // Owner can read all emoji reactions sent to them
+        allow read: if isOwner(userId);
+
+        // Friends can send emoji reactions to each other
+        // OPTIMIZED: Removed expensive exists() checks - validate friendship client-side
+        allow create, update: if isSignedIn() 
+          && request.auth.uid == fromUserId;
+
+        // Sender can delete their own reactions
+        allow delete: if isSignedIn() && request.auth.uid == fromUserId;
+      }
+
+      // 3a) Career Launchpad collections (owner can read; write gated to Advanced/Pro)
+      match /career_resumes/{docId} {
+        allow read: if isOwner(userId);
+        allow create, update, delete: if isOwner(userId) && hasAdvancedOrPro();
+      }
+      match /linkedin_posts/{docId} {
+        allow read: if isOwner(userId);
+        allow create, update, delete: if isOwner(userId) && hasAdvancedOrPro();
+      }
+      match /career_plans/{docId} {
+        allow read: if isOwner(userId);
+        allow create, update, delete: if isOwner(userId) && hasAdvancedOrPro();
+      }
+      match /interview_sessions/{docId} {
+        allow read: if isOwner(userId);
+        allow create, update, delete: if isOwner(userId) && hasAdvancedOrPro();
+      }
+
+      // 3b) Optional: usage logging for Career (export, etc.)
+      match /usage/{docId} {
+        allow read: if isOwner(userId);
+        // If you only log Career usage here, gate writes too. If you log general usage, remove hasAdvancedOrPro().
+        allow create: if isOwner(userId) && hasAdvancedOrPro();
+        allow update, delete: if false; // usually not needed by clients
+      }
+
+      // 3c) Achievements/counters/meta (owner-only; not plan-gated)
+      match /meta/{docId} {
+        // PRIVACY: owner-only. Public stats are mirrored to public_profiles.
+        allow read: if isOwner(userId);
+        // Achievements remain client-managed; billing and daily AI usage do not.
+        allow create: if isOwner(userId) && (
+          docId in ['achievements', 'weeklyCounters']
+          || (docId == 'counters' && !request.resource.data.keys().hasAny([
+            'uses_this_month', 'extra_uses_balance', 'extra_uses_used',
+            'usage_period_end'
+          ]))
+        );
+        allow update: if isOwner(userId) && (
+          docId in ['achievements', 'weeklyCounters']
+          || (docId == 'counters' && !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+            'uses_this_month', 'extra_uses_balance', 'extra_uses_used',
+            'usage_period_end'
+          ]))
+        );
+      }
+    }
+
+    // 4) Optional: legacy sample role-gated content
+    function hasBasicSubs() {
+      return request.auth != null && request.auth.token.stripeRole == "basic";
+    }
+    function hasPremiumSubs() {
+      return request.auth != null && request.auth.token.stripeRole == "premium";
+    }
+    match /content-basic/{doc} {
+      allow read: if hasBasicSubs() || hasPremiumSubs();
+    }
+    match /content-premium/{doc} {
+      allow read: if hasPremiumSubs();
+    }
+
+    // 5) Study Groups (for all signed-in users)
+    match /groups/{groupId} {
+      // Read: Any signed-in user can read groups for discovery
+      allow read: if isSignedIn();
+      
+      // Create: Any signed-in user can create groups
+      allow create: if isSignedIn() 
+        && request.resource.data.createdBy == request.auth.uid;
+      
+      // Update: Group admins can update group settings
+      allow update: if isSignedIn() 
+        && request.auth.uid in resource.data.admins;
+      
+      // Delete: Only group creator can delete
+      allow delete: if isSignedIn() 
+        && request.auth.uid == resource.data.createdBy;
+    }
+
+    // 6) Feed Posts
+    // Group posts (visibility == 'group') are private to that group's members:
+    // the post owner, anyone in groups/{id}.members (written by the join
+    // callables), or site admins/moderators. The extra get() read only fires
+    // for group posts - public/friends posts short-circuit on visibility.
+    function canReadFeedPostData(data) {
+      return data.visibility != 'group'
+        || data.ownerId == request.auth.uid
+        || isAdmin()
+        || isModerator()
+        || request.auth.uid in get(/databases/$(database)/documents/groups/$(data.groupId)).data.members;
+    }
+    function canReadFeedPost(postId) {
+      return canReadFeedPostData(
+        get(/databases/$(database)/documents/feed_posts/$(postId)).data
+      );
+    }
+    match /feed_posts/{postId} {
+      // Read: signed-in user + (public/friends post OR group member)
+      allow read: if isSignedIn() && canReadFeedPostData(resource.data);
+      
+      // Create: signed-in owner; group posts additionally require membership
+      allow create: if isSignedIn() 
+        && request.resource.data.ownerId == request.auth.uid
+        && (request.resource.data.get('visibility', 'public') != 'group'
+            || isAdmin()
+            || request.auth.uid in get(/databases/$(database)/documents/groups/$(request.resource.data.groupId)).data.members);
+      
+      // Update/Delete: Only post owner can modify their posts
+      allow delete: if isSignedIn() 
+        && resource.data.ownerId == request.auth.uid;
+
+      // Allow limited updates to engagement counters by any signed-in user
+      // Using diff().changedKeys() so server transforms like increment() pass
+      allow update: if isSignedIn() &&
+        (resource.data.ownerId == request.auth.uid || (
+          // Only these fields may change
+          resource.data.diff(request.resource.data).changedKeys().hasOnly([
+            'likeCount','dislikeCount','commentCount','participantCount','lastActivityAt'
+          ])
+        ));
+
+      // Reactions subcollection
+      match /reactions/{reactionUserId} {
+        // Read: same visibility as parent post (group posts = members only)
+        allow read: if isSignedIn() && canReadFeedPost(postId);
+        
+        // Write: Users can manage their own reactions OR post owner can delete all
+        // (writing a reaction also requires being able to read the post)
+        allow create, update: if isSignedIn() 
+          && request.auth.uid == reactionUserId
+          && canReadFeedPost(postId);
+        allow delete: if isSignedIn() 
+          && (request.auth.uid == reactionUserId || request.auth.uid == get(/databases/$(database)/documents/feed_posts/$(postId)).data.ownerId);
+      }
+
+      // Comments subcollection
+      match /comments/{commentId} {
+        // Read: same visibility as parent post (group posts = members only)
+        allow read: if isSignedIn() && canReadFeedPost(postId);
+        
+        // Create: comment author must match AND be able to read the post
+        allow create: if isSignedIn() 
+          && request.resource.data.userId == request.auth.uid
+          && canReadFeedPost(postId);
+        
+        // Update: Only comment author can modify
+        allow update: if isSignedIn() 
+          && resource.data.userId == request.auth.uid;
+        
+        // Delete: Comment author OR post owner can delete
+        allow delete: if isSignedIn() 
+          && (resource.data.userId == request.auth.uid || request.auth.uid == get(/databases/$(database)/documents/feed_posts/$(postId)).data.ownerId);
+      }
+
+      // Runs subcollection (challenge participation)
+      match /runs/{runUserId} {
+        // Read: same visibility as parent post (group posts = members only)
+        allow read: if isSignedIn() && canReadFeedPost(postId);
+        
+        // Write: Users can manage their own participation OR post owner can delete all
+        allow create, update: if isSignedIn() 
+          && request.auth.uid == runUserId
+          && canReadFeedPost(postId);
+        allow delete: if isSignedIn() 
+          && (request.auth.uid == runUserId || request.auth.uid == get(/databases/$(database)/documents/feed_posts/$(postId)).data.ownerId);
+      }
+    }
+
+    // =============================
+    // RBAC COLLECTIONS (Admin/Moderator System)
+    // =============================
+
+    // Role invites - server-side only (Cloud Functions handle all CRUD)
+    match /role_invites/{inviteId} {
+      // Admins can read invites via Cloud Functions
+      // No client-side writes - all managed by Cloud Functions
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    // Moderation logs - admin read only
+    match /moderation_logs/{logId} {
+      // Only admins can read logs; writes are server-side only
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    // Moderated/archived content - admin read only
+    match /moderated_content/{archiveId} {
+      // Only admins can read archived content; writes are server-side only
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    // Support reports - moderator read only, writes via Cloud Functions
+    match /support_reports/{reportId} {
+      allow read: if isModerator();
+      allow write: if false;
+    }
+
+    // =============================
+    // UPDATED GROUP RULES WITH MODERATOR ACCESS
+    // =============================
+    
+    // Note: The /groups/{groupId} rules above allow basic CRUD
+    // Moderator access to group content is controlled by:
+    // 1. Group creator sets moderatorAccessRequested = true
+    // 2. Moderators check this flag before accessing group data
+    // 3. All moderation actions go through Cloud Functions (server-side)
+    // 
+    // Groups remain private by default - moderators cannot see content
+    // unless the group creator explicitly requests help.
+  }
+}
