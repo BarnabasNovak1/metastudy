@@ -4,6 +4,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { useLocation, useNavigate } from "react-router-dom";
 import { Moon, Sun, Menu } from "lucide-react";
 const MetaStudyLogo = "/metastudy-logo-full.png";
+const MetaStudyLogoDark = "/metastudy-logo-full-dark.png";
 
 const NAV_ITEMS = [
   { label: "Home", path: "/" },
@@ -51,7 +52,8 @@ export const SiteHeader = () => {
       <div className="max-w-7xl mx-auto flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-6 min-w-0">
           <button onClick={() => go('/')} className="inline-flex items-center shrink-0">
-            <img src={MetaStudyLogo} alt="MetaStudy" className="h-9 md:h-10 w-auto" loading="lazy" />
+            <img src={MetaStudyLogo} alt="MetaStudy" className="h-9 md:h-10 w-auto dark:hidden" loading="lazy" />
+            <img src={MetaStudyLogoDark} alt="MetaStudy" className="h-9 md:h-10 w-auto hidden dark:block" loading="lazy" />
           </button>
           <nav className="hidden md:flex items-center gap-1 text-sm">
             {NAV_ITEMS.map((item) => (
