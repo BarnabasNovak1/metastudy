@@ -392,8 +392,8 @@ async function refundUsage(uid, consumed) {
 // ================================================================
 
 const LLAMA_API_KEY = process.env.LLAMA_API_KEY || process.env.META_API_KEY || '';
-const LLAMA_API_BASE = (process.env.LLAMA_API_BASE || 'https://api.llama.com/v1').replace(/\/+$/, '');
-const LLAMA_MODEL = process.env.LLAMA_MODEL || 'Llama-4-Maverick-17B-128E-Instruct-FP8';
+const LLAMA_API_BASE = (process.env.LLAMA_API_BASE || 'https://api.meta.ai/v1').replace(/\/+$/, '');
+const LLAMA_MODEL = process.env.LLAMA_MODEL || 'muse-spark-1.3';
 const STRIPE_KEY = (process.env.STRIPE_SECRET_KEY || '').trim();
 
 // Daily AI usage limits to prevent API abuse
@@ -426,11 +426,11 @@ const enforceDailyAILimit = async (req, res, next) => {
   next();
 };
 
-// Llama chat completion - OpenAI-compatible messages API on api.llama.com.
+// Chat completion - OpenAI-compatible messages API on api.meta.ai (Meta Model API).
 // Message content may be a string or an array of OpenAI-style content parts
 // ({ type: 'text' } / { type: 'image_url' }) for vision requests.
 async function llamaChat(messages, options = {}) {
-  const { temperature = 0.3, response_format, max_tokens = 8192 } = options;
+  const { temperature = 0.3, response_format, max_tokens = 8192, reasoning_effort = 'low' } = options;
   if (!LLAMA_API_KEY) throw new Error('LLAMA_API_KEY is not set');
   const isJson = response_format?.type === 'json_object';
 
@@ -450,6 +450,7 @@ async function llamaChat(messages, options = {}) {
     messages: out,
     temperature,
     max_completion_tokens: max_tokens,
+    reasoning_effort,
   };
   if (isJson) body.response_format = { type: 'json_object' };
 
