@@ -1,5 +1,5 @@
 import {
-  requireAuth, enforceWordLimit, aiLimiter, llamaChat,
+  requireAuth, enforceWordLimit, enforceDailyAILimit, aiLimiter, llamaChat,
   reserveUsage, refundUsage, checkUsageLimit, checkDailyAILimit,
 } from './shared.js';
 import { gradeShortAnswers } from '../lib/short-answer-grading.js';
@@ -56,6 +56,6 @@ export function registerQuizGrading(app) {
       return res.status(500).json({ error: error?.message || 'Failed to grade answers. Please try again.' });
     }
   };
-  app.post('/quiz/grade-short-answers', requireAuth, enforceWordLimit, aiLimiter, grade(false));
-  app.post('/quiz/grade-short-answer', requireAuth, enforceWordLimit, aiLimiter, grade(true));
+  app.post('/quiz/grade-short-answers', requireAuth, enforceWordLimit, aiLimiter, enforceDailyAILimit, grade(false));
+  app.post('/quiz/grade-short-answer', requireAuth, enforceWordLimit, aiLimiter, enforceDailyAILimit, grade(true));
 }

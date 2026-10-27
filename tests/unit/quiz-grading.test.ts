@@ -15,7 +15,7 @@ const mocks = vi.hoisted(() => ({
   checkDailyAILimit: vi.fn(),
 }));
 vi.mock('../../functions/routes/shared.js', () => ({
-  ...mocks, requireAuth: vi.fn(), enforceWordLimit: vi.fn(), aiLimiter: vi.fn(),
+  ...mocks, requireAuth: vi.fn(), enforceWordLimit: vi.fn(), enforceDailyAILimit: vi.fn(), aiLimiter: vi.fn(),
   validate: () => vi.fn(), lessonRequestSchema: {}, visionExtractSchema: {},
   LLAMA_MODEL: 'test', fdb: {},
 }));

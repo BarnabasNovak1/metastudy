@@ -86,7 +86,7 @@ const chatRequestSchema = z.object({
   messages: z.array(z.object({
     role: z.enum(['user', 'assistant', 'system']),
     content: z.string(),
-  })),
+  })).min(1).max(60),
   personality_id: z.string().optional(),
   word_limit: z.number().optional(),
   userId: z.string().optional(),
@@ -415,6 +415,17 @@ async function checkDailyAILimit(uid) {
   });
 }
 
+// Middleware form of the daily cap — blocks burst spend even when monthly quota remains.
+const enforceDailyAILimit = async (req, res, next) => {
+  try {
+    const daily = await checkDailyAILimit(req.authUid);
+    if (!daily.allowed) return res.status(429).json({ error: daily.error });
+  } catch (e) {
+    console.error('checkDailyAILimit failed:', e);
+  }
+  next();
+};
+
 // Llama chat completion - OpenAI-compatible messages API on api.llama.com.
 // Message content may be a string or an array of OpenAI-style content parts
 // ({ type: 'text' } / { type: 'image_url' }) for vision requests.
@@ -513,7 +524,7 @@ export {
   stripe, LLAMA_API_KEY, LLAMA_API_BASE, LLAMA_MODEL,
   STRIPE_KEY, PRICE_MAP, PLAN_CONFIG,
   // middleware
-  requireAuth, enforceWordLimit, validate,
+  requireAuth, enforceWordLimit, enforceDailyAILimit, validate,
   generalLimiter, aiLimiter, createRateLimiter,
   // usage limits / quota helpers
   DAILY_AI_CALL_LIMIT,

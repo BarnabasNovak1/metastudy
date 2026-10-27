@@ -4,7 +4,7 @@
 // Extracted from server.js - register() mounts them on the shared app.
 // ================================================================
 import {
-  requireAuth, enforceWordLimit, aiLimiter, validate,
+  requireAuth, enforceWordLimit, enforceDailyAILimit, aiLimiter, validate,
   lessonRequestSchema, visionExtractSchema,
   checkUsageLimit, checkDailyAILimit, reserveUsage, refundUsage,
   llamaChat, LLAMA_MODEL, fdb,
@@ -14,7 +14,7 @@ import { registerQuizGrading } from './quiz-grading.js';
 export function register(app) {
   registerQuizGrading(app);
   // Study Helper: Generate Comprehensive Lesson -> { lesson: { title, description, duration, sections, flashcards, quiz, homework } }
-  app.post('/study-helper/generate-lesson', requireAuth, enforceWordLimit, aiLimiter, validate(lessonRequestSchema), async (req, res) => {
+  app.post('/study-helper/generate-lesson', requireAuth, enforceWordLimit, aiLimiter, enforceDailyAILimit, validate(lessonRequestSchema), async (req, res) => {
     try {
       const { title, description, subjects, difficulty, audience, studyDuration, includeFlashcards, includeQuiz, includeHomework } = req.body ?? {};
       const uid = req.authUid;
@@ -300,7 +300,7 @@ export function register(app) {
   });
 
   // Study Helper: Generate Flashcards -> { flashcards: [{front, back}] } - TRACKS USAGE
-  app.post('/study-helper/generate-flashcards', requireAuth, enforceWordLimit, async (req, res) => {
+  app.post('/study-helper/generate-flashcards', requireAuth, enforceWordLimit, aiLimiter, enforceDailyAILimit, async (req, res) => {
     try {
       const { title, description, difficulty, audience, count = 20 } = req.body ?? {};
       const uid = req.authUid;
@@ -359,7 +359,7 @@ export function register(app) {
   });
 
   // Study Helper: Generate Quiz -> { quiz: { questions: [{question, options, answer, explanation}] } } - TRACKS USAGE
-  app.post('/study-helper/generate-quiz', requireAuth, enforceWordLimit, async (req, res) => {
+  app.post('/study-helper/generate-quiz', requireAuth, enforceWordLimit, aiLimiter, enforceDailyAILimit, async (req, res) => {
     try {
       const { title, description, difficulty, audience, questionCount = 10 } = req.body ?? {};
       const uid = req.authUid;
@@ -427,7 +427,7 @@ export function register(app) {
   });
 
   // Study Helper: Generate Homework -> { homework: [{problem, solution, steps}] }
-  app.post('/study-helper/generate-homework', requireAuth, enforceWordLimit, async (req, res) => {
+  app.post('/study-helper/generate-homework', requireAuth, enforceWordLimit, aiLimiter, enforceDailyAILimit, async (req, res) => {
     try {
       const { title, description, difficulty, audience, problemCount = 3 } = req.body ?? {};
     
@@ -477,7 +477,7 @@ export function register(app) {
   });
 
   // Study Helper: Generate Study Plan -> { plan: { title, goals, schedule, resources, milestones } }
-  app.post('/study-helper/generate-study-plan', requireAuth, enforceWordLimit, async (req, res) => {
+  app.post('/study-helper/generate-study-plan', requireAuth, enforceWordLimit, aiLimiter, enforceDailyAILimit, async (req, res) => {
     try {
       const { title, description, subjects, difficulty, audience, timeframe, studyHours } = req.body ?? {};
     
@@ -548,7 +548,7 @@ export function register(app) {
   });
 
   // Quiz: Generate Multiple-Choice Questions -> { questions:[{id,question,question_type,options,correct_answer,explanation?}] }
-  app.post('/generate-quiz', requireAuth, enforceWordLimit, aiLimiter, async (req, res) => {
+  app.post('/generate-quiz', requireAuth, enforceWordLimit, aiLimiter, enforceDailyAILimit, async (req, res) => {
     try {
       const { title, content, questionCount, includeFillBlank, fillBlankMode } = req.body ?? {};
       const uid = req.authUid;
@@ -665,7 +665,7 @@ export function register(app) {
   });
 
   // Generate questions with a fixed grading reference grounded in the source.
-  app.post('/quiz/generate-short-answers', requireAuth, enforceWordLimit, async (req, res) => {
+  app.post('/quiz/generate-short-answers', requireAuth, enforceWordLimit, aiLimiter, enforceDailyAILimit, async (req, res) => {
     try {
       const { title, content, questionCount } = req.body ?? {};
       const uid = req.authUid;
@@ -776,7 +776,7 @@ export function register(app) {
     }
   });
 
-  app.post('/study-chat', requireAuth, enforceWordLimit, aiLimiter, async (req, res) => {
+  app.post('/study-chat', requireAuth, enforceWordLimit, aiLimiter, enforceDailyAILimit, async (req, res) => {
     try {
       const { messages, context, personality } = req.body ?? {};
       const uid = req.authUid;
@@ -790,7 +790,7 @@ export function register(app) {
       const appDescription = `You are MetaStudy - the user's AI study companion, powered by Meta's Llama models. Think of yourself as the smartest friend in class, always ready to help.
 
   About MetaStudy:
-  - MetaStudy turns notes, slides, and recordings into flashcards, quizzes, summaries, and study plans
+  - MetaStudy turns notes, slides, and documents into flashcards, quizzes, summaries, and study plans
   - Features include: Study Chat (this conversation), Text Summarizer, Flashcard Generator, Quiz Generator, Lesson Builder, and Career tools
   - Users can share materials on the Study Feed, join challenges, and collaborate in study groups
   - The app offers Free, Basic, Advanced, and Pro plans with different usage limits
@@ -806,7 +806,10 @@ export function register(app) {
         ...(context && typeof context.text === 'string' && context.text.trim().length
           ? [{ role: 'system', content: `Context (may reference files or a URL):\n${context.text}` }]
           : []),
-        ...messages.map(m => ({ role: m.role, content: m.content }))
+        ...messages.slice(-60).map(m => ({
+          role: m.role === 'assistant' ? 'assistant' : 'user',
+          content: typeof m.content === 'string' ? m.content : '',
+        }))
       ];
 
       const response = await llamaChat(msgs, { temperature: 0.3 });
@@ -820,7 +823,7 @@ export function register(app) {
   });
 
   // Summarize -> { summary } - TRACKS USAGE
-  app.post('/summarize-text', requireAuth, enforceWordLimit, aiLimiter, async (req, res) => {
+  app.post('/summarize-text', requireAuth, enforceWordLimit, aiLimiter, enforceDailyAILimit, async (req, res) => {
     try {
       const { text, summaryType } = req.body ?? {};
       const uid = req.authUid;
@@ -844,7 +847,7 @@ export function register(app) {
   });
 
   // Essay: Analyze live -> { suggestions:[{id,message,replacement?}], grammar_score, essay_score, human_score }
-  app.post('/essay/analyze', requireAuth, enforceWordLimit, async (req, res) => {
+  app.post('/essay/analyze', requireAuth, enforceWordLimit, aiLimiter, enforceDailyAILimit, async (req, res) => {
     try {
       const { title, text } = req.body ?? {};
       const t = typeof text === 'string' ? text.trim() : '';
@@ -874,7 +877,7 @@ export function register(app) {
   });
 
   // Essay: Grade -> { score, summary } - TRACKS USAGE
-  app.post('/essay/grade', requireAuth, enforceWordLimit, async (req, res) => {
+  app.post('/essay/grade', requireAuth, enforceWordLimit, aiLimiter, enforceDailyAILimit, async (req, res) => {
     try {
       const { title, text, essay, prompt } = req.body ?? {};
       const uid = req.authUid;
@@ -900,7 +903,7 @@ export function register(app) {
   });
 
   // Flashcards -> { flashcards: [{question,answer}] } - TRACKS USAGE
-  app.post('/generate-flashcards', requireAuth, enforceWordLimit, async (req, res) => {
+  app.post('/generate-flashcards', requireAuth, enforceWordLimit, aiLimiter, enforceDailyAILimit, async (req, res) => {
     try {
       const { text, flashcardCount } = req.body ?? {};
       const uid = req.authUid;

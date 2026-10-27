@@ -3,13 +3,13 @@
 // Extracted from server.js - register() mounts them on the shared app.
 // ================================================================
 import {
-  requireAuth, enforceWordLimit, aiLimiter,
+  requireAuth, enforceWordLimit, enforceDailyAILimit, aiLimiter,
   reserveUsage, refundUsage, llamaChat,
 } from './shared.js';
 
 export function register(app) {
   // Career: Rate Resume -> { score, summary, strengths, improvements } - TRACKS USAGE
-  app.post('/career/rate-resume', requireAuth, enforceWordLimit, aiLimiter, async (req, res) => {
+  app.post('/career/rate-resume', requireAuth, enforceWordLimit, aiLimiter, enforceDailyAILimit, async (req, res) => {
     try {
       const { html, text, role } = req.body ?? {};
       const uid = req.authUid;
@@ -60,7 +60,7 @@ export function register(app) {
   });
 
   // Career Planner: recommend jobs from resume text -> { recommendations: [{title, reasoning}] } - TRACKS USAGE
-  app.post('/career/planner', requireAuth, enforceWordLimit, aiLimiter, async (req, res) => {
+  app.post('/career/planner', requireAuth, enforceWordLimit, aiLimiter, enforceDailyAILimit, async (req, res) => {
     try {
       const { resume_text } = req.body ?? {};
       const uid = req.authUid;
@@ -85,7 +85,7 @@ export function register(app) {
   });
 
   // Career: LinkedIn -> { variations: string[] } - TRACKS USAGE
-  app.post('/career/linkedin', requireAuth, enforceWordLimit, async (req, res) => {
+  app.post('/career/linkedin', requireAuth, enforceWordLimit, aiLimiter, enforceDailyAILimit, async (req, res) => {
     try {
       const { topic, tone, post_type, viral_boost } = req.body ?? {};
       const uid = req.authUid;
@@ -144,7 +144,7 @@ export function register(app) {
   });
 
   // Interview Coach: start -> { questions } - TRACKS USAGE
-  app.post('/career/interview/start', requireAuth, enforceWordLimit, aiLimiter, async (req, res) => {
+  app.post('/career/interview/start', requireAuth, enforceWordLimit, aiLimiter, enforceDailyAILimit, async (req, res) => {
     try {
       const { interview_type, job_title, company_name } = req.body ?? {};
       const uid = req.authUid;
@@ -169,7 +169,7 @@ export function register(app) {
   });
 
   // Interview Coach: evaluate answer -> { clarity, confidence, relevance, feedback, improved }
-  app.post('/career/interview/answer', requireAuth, enforceWordLimit, async (req, res) => {
+  app.post('/career/interview/answer', requireAuth, enforceWordLimit, aiLimiter, enforceDailyAILimit, async (req, res) => {
     try {
       const { question, answer, feedback_tone } = req.body ?? {};
       if (!question || !answer) return res.status(400).json({ error: 'question and answer required' });
@@ -208,7 +208,7 @@ export function register(app) {
   });
 
   // Career: Parse Resume Free Text -> { fullName?, contact?, sections:[{type,styleKey,html}] }
-  app.post('/career/parse-resume', requireAuth, enforceWordLimit, async (req, res) => {
+  app.post('/career/parse-resume', requireAuth, enforceWordLimit, aiLimiter, enforceDailyAILimit, async (req, res) => {
     try {
       const { text } = req.body ?? {};
       if (!text || typeof text !== 'string' || text.trim().length < 2) return res.status(400).json({ error: 'text required' });
@@ -328,7 +328,7 @@ export function register(app) {
   });
 
   // Career: Resume -> { resume }
-  app.post('/career/resume', requireAuth, enforceWordLimit, async (req, res) => {
+  app.post('/career/resume', requireAuth, enforceWordLimit, aiLimiter, enforceDailyAILimit, async (req, res) => {
     try {
       const { fullName, contact, role, years, goals, experience, skills, education, tone } = req.body ?? {};
       const resume = await llamaChat([
