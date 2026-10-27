@@ -305,6 +305,10 @@ const Auth = () => {
         }
 
         localStorage.setItem('study_tab', 'chat');
+        if (await userNeedsUsername(result.user.uid)) {
+          openGoogleGate();
+          return;
+        }
         navigate(postAuthPath);
       } catch (error: any) {
         console.error('Redirect result error:', error);
@@ -312,6 +316,24 @@ const Auth = () => {
     };
     handleRedirectResult();
   }, [navigate, postAuthPath]);
+
+  // A Google account that never finished the username/ToS gate has no
+  // username on its user doc — send it back through the gate on any sign-in.
+  const userNeedsUsername = async (uid: string) => {
+    try {
+      const snap = await getDoc(doc(db as any, 'users', uid));
+      return !(snap.exists() && (snap.data() as any)?.username);
+    } catch {
+      return false;
+    }
+  };
+
+  const openGoogleGate = () => {
+    setGoogleGateOpen(true);
+    setGoogleGateUsername("");
+    setGoogleGateSuggestions([]);
+    setGoogleGateAcceptTos(false);
+  };
 
   const handleGoogle = async (mode: 'signin' | 'signup') => {
     setLoading(true);
@@ -357,10 +379,7 @@ const Auth = () => {
 
       // SIGN UP: for first-time users, require ToS + username before entering app.
       if (mode === 'signup' && isNew) {
-        setGoogleGateOpen(true);
-        setGoogleGateUsername("");
-        setGoogleGateSuggestions([]);
-        setGoogleGateAcceptTos(false);
+        openGoogleGate();
         return;
       }
 
@@ -370,6 +389,13 @@ const Auth = () => {
           title: "Account already exists",
           description: "You already have an account. You're signed in now.",
         });
+      }
+
+      // Account exists (or signup-mode with an existing account): if setup was
+      // never finished, send them back through the gate instead of the app.
+      if (await userNeedsUsername(result.user.uid)) {
+        openGoogleGate();
+        return;
       }
 
       // Reset to chat tab on login and navigate
@@ -397,19 +423,19 @@ const Auth = () => {
     return { first, last };
   };
 
-  const cancelGoogleGateAndRollback = async () => {
+  // Cancel keeps the Google account — the gate simply re-opens on the next
+  // sign-in so setup can be finished then. Only the session is ended.
+  const cancelGoogleGate = async () => {
     setGoogleGateOpen(false);
     setGoogleGateUsername("");
     setGoogleGateSuggestions([]);
     setGoogleGateAcceptTos(false);
-    try {
-      const del = httpsCallable(fbFunctions, 'deleteAccountFull');
-      await del({});
-    } catch {
-      try { await auth.currentUser?.delete(); } catch {}
-    }
     try { await signOut(auth); } catch {}
     setTab('signup');
+    toast({
+      title: 'Signup paused',
+      description: 'Your account is saved. Finish choosing a username the next time you sign in.',
+    });
   };
 
   const completeGoogleGate = async () => {
@@ -924,7 +950,7 @@ const Auth = () => {
                 </div>
 
                 <div className="flex gap-2 justify-end">
-                  <Button type="button" variant="ghost" onClick={cancelGoogleGateAndRollback} disabled={loading}>
+                  <Button type="button" variant="ghost" onClick={cancelGoogleGate} disabled={loading}>
                     Cancel
                   </Button>
                   <Button type="button" onClick={completeGoogleGate} disabled={loading}>
