@@ -295,7 +295,7 @@ export const FEATURE_TOURS: Record<string, Step[]> = {
   ],
   // Adaptive Tutor tour
   tutor: [
-    { target: '[data-tour="tutor-lesson-gen"]', content: 'Scroll down for the Lesson Generator: turn any topic into a full lesson with flashcards, quizzes, and practice problems, then practice it with the tutor above.', title: '🎓 Lesson Generator', disableBeacon: true, placement: 'auto' },
+    { target: '[data-tour="tutor-modes"]', content: 'Two ways to learn in one place: Tutor runs adaptive question sessions, Planner & Creator generates full study lessons.', title: '🧠 Tutor or Planner', disableBeacon: true, placement: 'auto' },
     { target: '[data-tour="tutor-new"]', content: 'Start a diagnostic session here. The tutor builds learning objectives from YOUR material, then adapts each question to what you actually understand.', title: '🧠 Adaptive Tutor', disableBeacon: true, placement: 'auto' },
     { target: '[data-tour="tutor-setup-source"]', content: 'Pick saved summaries or paste notes. The tutor grounds every question and explanation in this material, not generic trivia.', title: '📚 Source Material', disableBeacon: true, placement: 'auto' },
     { target: '[data-tour="tutor-question"]', content: 'Answer questions one at a time. After each answer you get feedback that targets your specific misconception, then the next question adapts.', title: '❓ Answer & Adapt', disableBeacon: true, placement: 'auto' },

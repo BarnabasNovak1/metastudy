@@ -48,6 +48,15 @@ const Study = () => {
     }
     return "chat";
   });
+  const [tutorMode, setTutorMode] = useState<'tutor' | 'planner'>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("tutor_mode") === "planner" || localStorage.getItem("tutor_mode") === "lesson" ? "planner" : "tutor";
+    }
+    return "tutor";
+  });
+  useEffect(() => {
+    localStorage.setItem("tutor_mode", tutorMode);
+  }, [tutorMode]);
   useEffect(() => {
     localStorage.setItem("study_tab", tab);
   }, [tab]);
@@ -1092,12 +1101,24 @@ const Study = () => {
 
           <TabsContent value="tutor" className="mt-0">
             {gate?.studyPlans ? (
-              <div className="space-y-8">
-                <AdaptiveTutor userId={user?.uid || ""} />
-                <div className="border-t border-border pt-8" data-tour="tutor-lesson-gen">
+              <Tabs value={tutorMode} onValueChange={(v) => setTutorMode(v as 'tutor' | 'planner')} className="w-full">
+                <TabsList className="grid w-full grid-cols-2" data-tour="tutor-modes">
+                  <TabsTrigger value="tutor">
+                    <BrainCircuit className="w-4 h-4 mr-2" />
+                    Tutor
+                  </TabsTrigger>
+                  <TabsTrigger value="planner">
+                    <GraduationCap className="w-4 h-4 mr-2" />
+                    Planner &amp; Creator
+                  </TabsTrigger>
+                </TabsList>
+                <TabsContent value="tutor" className="mt-6">
+                  <AdaptiveTutor userId={user?.uid || ""} />
+                </TabsContent>
+                <TabsContent value="planner" className="mt-6">
                   <StudyHelper ref={studyHelperRef} userId={user?.uid || ""} />
-                </div>
-              </div>
+                </TabsContent>
+              </Tabs>
             ) : (
               <div className="min-h-[200px] flex items-center justify-center">
                 <div className="text-center space-y-2">
@@ -1508,7 +1529,7 @@ const Study = () => {
       {user && !loading && <OnboardingTour />}
       
       {/* Feature Help Button */}
-      {user && !loading && <FeatureHelpButton currentTab={tab} />}
+      {user && !loading && <FeatureHelpButton currentTab={tab === 'tutor' && tutorMode === 'planner' ? 'helper' : tab} />}
     </div>
   );
 };
