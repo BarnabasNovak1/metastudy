@@ -273,6 +273,28 @@ export const StudyHelper = forwardRef<{ refreshPlans: () => void }, { userId: st
   }, [userData.counters, monthlyQuota]);
 
   // Load saved items
+  // Accept seeded material from the "Create from" picker (cross-create)
+  useEffect(() => {
+    const onCross = (e: any) => {
+      try {
+        const detail = e?.detail || {};
+        if (!['planner', 'lesson', 'plans', 'tutor'].includes(String(detail.type).toLowerCase())) return;
+        const incoming = detail.payload || {};
+        const srcText = String(incoming.text || '').trim();
+        if (!srcText) return;
+        const titleHint = String(incoming?.meta?.title || incoming?.title || '').trim();
+        setStudyConfig((prev) => ({
+          ...prev,
+          description: srcText,
+          title: prev.title.trim() ? prev.title : titleHint.substring(0, 80),
+        }));
+        setActiveTab('planner');
+      } catch {}
+    };
+    window.addEventListener('study-cross-action' as any, onCross as any);
+    return () => window.removeEventListener('study-cross-action' as any, onCross as any);
+  }, []);
+
   useEffect(() => {
     const loadSavedItems = async () => {
       if (!userId) return;

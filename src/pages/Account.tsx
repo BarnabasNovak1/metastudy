@@ -23,7 +23,8 @@ import { UnifiedProfilePopup } from "@/components/UnifiedProfilePopup";
 import { createPortalSession } from "@/lib/billing";
 import { Pricing } from "@/components/Pricing";
 import MetaStudyLogo from "@/assets/metastudy-icon.png";
-import { Moon, Sun, Trophy, Gauge, BarChart3, Users, Search, UserCircle, Loader2, Star, RefreshCw, GraduationCap, Trash2, Ban, AlertCircle, ShieldCheck } from "lucide-react";
+import { Moon, Sun, Trophy, Gauge, BarChart3, Users, Search, UserCircle, Loader2, Star, RefreshCw, GraduationCap, Trash2, Ban, AlertCircle, ShieldCheck, Bot } from "lucide-react";
+import { BUDDY_PERSONALITIES } from "@/lib/buddy";
 import { PrivacyCenter } from "@/components/PrivacyCenter";
 import { ReportIssueDialog } from "@/components/ReportIssueDialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -64,6 +65,7 @@ const Account = () => {
   const [photoURL, setPhotoURL] = useState<string | null>(null);
   const [username, setUsername] = useState<string>('');
   const [educationLevel, setEducationLevel] = useState<string>('');
+  const [buddyPersonality, setBuddyPersonality] = useState<string>('studybuddy');
   const [newUsername, setNewUsername] = useState<string>('');
   const [unameSuggestions, setUnameSuggestions] = useState<string[]>([]);
   const [changingUname, setChangingUname] = useState<boolean>(false);
@@ -258,6 +260,7 @@ const Account = () => {
     setUsage(userData.profile);
     setUsername(userData.username);
     setEducationLevel(userData.profile?.education_level || '');
+    setBuddyPersonality((userData.profile as any)?.buddy_personality || 'studybuddy');
     setLoadingUsage(false);
   }, [uid, userData.profile, userData.username]);
 
@@ -729,7 +732,35 @@ const Account = () => {
               {!uid ? (
                 <p className="text-muted-foreground">Please sign in to manage your privacy settings.</p>
               ) : (
-                <PrivacyCenter onOpenDeleteAccount={() => setDeleteOpen(true)} />
+                <div className="space-y-6">
+                  <Card className="p-6">
+                    <h2 className="text-lg font-semibold mb-1 flex items-center gap-2"><Bot className="w-5 h-5" /> Study Buddy</h2>
+                    <p className="text-sm text-muted-foreground mb-4">Buddy is the little robot in the corner of the Study page — a companion that remembers you, motivates you, and points you at the right tool. Pick its personality.</p>
+                    <Select
+                      value={buddyPersonality}
+                      onValueChange={async (val) => {
+                        if (!uid) return;
+                        setBuddyPersonality(val);
+                        try {
+                          await setDoc(doc(db as any, 'users', uid), { buddy_personality: val }, { merge: true });
+                          toast({ title: 'Updated', description: 'Buddy personality saved.' });
+                        } catch (e: any) {
+                          toast({ title: 'Error', description: e?.message || 'Could not save.', variant: 'destructive' });
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="w-[260px] h-9 text-sm">
+                        <SelectValue placeholder="Pick a personality" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {BUDDY_PERSONALITIES.map((p) => (
+                          <SelectItem key={p.id} value={p.id}>{p.name} — {p.description}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Card>
+                  <PrivacyCenter onOpenDeleteAccount={() => setDeleteOpen(true)} />
+                </div>
               )}
             </TabsContent>
 

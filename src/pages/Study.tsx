@@ -5,7 +5,7 @@ import { useUserData } from "@/contexts/UserDataContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { BookOpen, MessageSquare, Layers, ListChecks, GraduationCap, Briefcase, Sun, Moon, ChevronRight, Users, Search, UserCircle, ChevronUp, Star, Bell, Loader2, BarChart3, BrainCircuit } from "lucide-react";
+import { BookOpen, MessageSquare, Layers, ListChecks, GraduationCap, Briefcase, Sun, Moon, ChevronRight, Users, Search, UserCircle, ChevronUp, Star, Bell, Loader2, BarChart3 } from "lucide-react";
 import MetaStudyLogo from "@/assets/metastudy-icon.png";
 import { AccountMenu } from "@/components/AccountMenu";
 import { UnifiedProfilePopup } from "@/components/UnifiedProfilePopup";
@@ -22,6 +22,7 @@ import { batchFetchUserProfiles } from "@/lib/firestore-utils";
 import { httpsCallable } from "firebase/functions";
 import { Footer } from "@/components/Footer";
 import { OnboardingTour, FeatureHelpButton } from "@/components/OnboardingTour";
+import { BuddyBot } from "@/components/BuddyBot";
 import { FadeIn } from "@/components/PageTransition";
 import { notifyAIPageVisit } from "@/components/AIDisclosure";
 
@@ -32,7 +33,6 @@ const StudyQuiz = lazy(() => import("@/components/study/StudyQuiz").then((m) => 
 const StudyHelper = lazy(() => import("@/components/study/StudyHelper").then((m) => ({ default: m.StudyHelper })));
 const CareerLaunchpad = lazy(() => import("@/components/study/CareerLaunchpad").then((m) => ({ default: m.CareerLaunchpad })));
 const StudyFeed = lazy(() => import("@/components/study/StudyFeed").then((m) => ({ default: m.StudyFeed })));
-const AdaptiveTutor = lazy(() => import("@/components/study/AdaptiveTutor").then((m) => ({ default: m.AdaptiveTutor })));
 
 const Study = () => {
   const userData = useUserData();
@@ -43,20 +43,11 @@ const Study = () => {
   const [tab, setTab] = useState<string>(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("study_tab") || "chat";
-      // 'plans' was merged into the tutor tab
-      return saved === "plans" ? "tutor" : saved;
+      // legacy values: 'plans'/'tutor' were merged into the planner tab
+      return saved === "plans" || saved === "tutor" ? "planner" : saved;
     }
     return "chat";
   });
-  const [tutorMode, setTutorMode] = useState<'tutor' | 'planner'>(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("tutor_mode") === "planner" || localStorage.getItem("tutor_mode") === "lesson" ? "planner" : "tutor";
-    }
-    return "tutor";
-  });
-  useEffect(() => {
-    localStorage.setItem("tutor_mode", tutorMode);
-  }, [tutorMode]);
   useEffect(() => {
     localStorage.setItem("study_tab", tab);
   }, [tab]);
@@ -781,7 +772,7 @@ const Study = () => {
         (window as any).studyCreateFrom = (detail: any) => {
           try {
             const t = String(detail?.type || '').toLowerCase();
-            const dest = t === 'flashcards' ? 'flashcards' : t === 'quiz' ? 'quizzes' : t === 'chat' ? 'chat' : t === 'tutor' ? 'tutor' : 'summarizer';
+            const dest = t === 'flashcards' ? 'flashcards' : t === 'quiz' ? 'quizzes' : t === 'chat' ? 'chat' : (t === 'planner' || t === 'lesson' || t === 'plan' || t === 'tutor') ? 'planner' : 'summarizer';
             // Switch tab first
             setTab(dest);
             // Dispatch after a small delay to allow mount
@@ -814,7 +805,7 @@ const Study = () => {
           summarizer: "AI Text Summarizer | Study | MetaStudy",
           flashcards: "AI Flashcard Maker | Study | MetaStudy",
           quizzes: "AI Quiz Generator | Study | MetaStudy",
-          tutor: "Adaptive Tutor, Lessons & Practice | Study | MetaStudy",
+          planner: "Lesson Planner & Creator | Study | MetaStudy",
           career: "AI Career Tools | Study | MetaStudy",
           feed: "Study Feed, Challenges & Community | Study | MetaStudy",
         };
@@ -823,7 +814,7 @@ const Study = () => {
           summarizer: "Paste text and get concise summaries or study notes for online learning.",
           flashcards: "Generate flashcards from your notes for faster memorization and studying.",
           quizzes: "Create practice quizzes from your notes and test your knowledge while studying.",
-          tutor: "Generate lessons and practice them with an AI tutor that adapts to your understanding.",
+          planner: "Turn any topic or file into a full lesson with flashcards, quizzes, and homework.",
           career: "Build resumes, portfolios, LinkedIn posts, and practice interviews with AI.",
         };
         const current = titles[tab] || base;
@@ -833,7 +824,7 @@ const Study = () => {
           summarizer: window.location.origin + "/metastudy-icon.png",
           flashcards: window.location.origin + "/metastudy-icon.png",
           quizzes: window.location.origin + "/metastudy-icon.png",
-          tutor: window.location.origin + "/metastudy-icon.png",
+          planner: window.location.origin + "/metastudy-icon.png",
           career: window.location.origin + "/metastudy-icon.png",
         };
         const featureJsonLd = (() => {
@@ -856,7 +847,7 @@ const Study = () => {
             summarizer: { ...baseObj, name: "AI Text Summarizer", description: desc },
             flashcards: { ...baseObj, name: "AI Flashcard Generator", description: desc },
             quizzes: { ...baseObj, name: "AI Quiz Generator", description: desc },
-            tutor: { ...baseObj, name: "Adaptive Tutor (Lessons & Practice)", description: desc },
+            planner: { ...baseObj, name: "Lesson Planner & Creator", description: desc },
             career: { ...baseObj, name: "AI Career Launchpad", description: desc },
             feed: { ...baseObj, name: "Study Feed (Challenges)", description: desc },
           };
@@ -1053,13 +1044,13 @@ const Study = () => {
               <span className="hidden sm:inline">Quizzes</span>
             </TabsTrigger>
             <TabsTrigger
-              value="tutor"
-              data-tour="tutor-tab"
+              value="planner"
+              data-tour="planner-tab"
               aria-disabled={!gate?.studyPlans}
               className={`flex items-center justify-center gap-2 py-2 sm:py-3 text-xs sm:text-sm rounded-md transition-colors hover:bg-accent/50 data-[state=active]:bg-accent data-[state=active]:text-accent-foreground ${!gate?.studyPlans ? 'opacity-60 cursor-not-allowed' : ''}`}
             >
-              <BrainCircuit className="w-4 h-4" />
-              <span className="hidden sm:inline">Tutor</span>
+              <BookOpen className="w-4 h-4" />
+              <span className="hidden sm:inline">Planner</span>
             </TabsTrigger>
             <TabsTrigger
               value="career"
@@ -1099,31 +1090,14 @@ const Study = () => {
             <StudyQuiz ref={studyQuizRef} userId={user?.uid || ""} />
           </TabsContent>
 
-          <TabsContent value="tutor" className="mt-0">
+          <TabsContent value="planner" className="mt-0">
             {gate?.studyPlans ? (
-              <Tabs value={tutorMode} onValueChange={(v) => setTutorMode(v as 'tutor' | 'planner')} className="w-full">
-                <TabsList className="grid w-full grid-cols-2" data-tour="tutor-modes">
-                  <TabsTrigger value="tutor">
-                    <BrainCircuit className="w-4 h-4 mr-2" />
-                    Tutor
-                  </TabsTrigger>
-                  <TabsTrigger value="planner">
-                    <GraduationCap className="w-4 h-4 mr-2" />
-                    Planner &amp; Creator
-                  </TabsTrigger>
-                </TabsList>
-                <TabsContent value="tutor" className="mt-6">
-                  <AdaptiveTutor userId={user?.uid || ""} />
-                </TabsContent>
-                <TabsContent value="planner" className="mt-6">
-                  <StudyHelper ref={studyHelperRef} userId={user?.uid || ""} />
-                </TabsContent>
-              </Tabs>
+              <StudyHelper ref={studyHelperRef} userId={user?.uid || ""} />
             ) : (
               <div className="min-h-[200px] flex items-center justify-center">
                 <div className="text-center space-y-2">
-                  <p className="text-sm text-muted-foreground">The Adaptive Tutor and Lesson Generator are available on Advanced and Pro plans.</p>
-                  <Button onClick={() => { setUpsellMsg('The Adaptive Tutor and Lesson Generator are included with Advanced and Pro plans. Upgrade to generate lessons and practice with adaptive questions.'); setUpsellOpen(true); }}>View Plans</Button>
+                  <p className="text-sm text-muted-foreground">Planner &amp; Creator is available on Advanced and Pro plans.</p>
+                  <Button onClick={() => { setUpsellMsg('Planner & Creator is included with Advanced and Pro plans. Upgrade to generate full lessons with flashcards, quizzes, and homework.'); setUpsellOpen(true); }}>View Plans</Button>
                 </div>
               </div>
             )}
@@ -1529,7 +1503,8 @@ const Study = () => {
       {user && !loading && <OnboardingTour />}
       
       {/* Feature Help Button */}
-      {user && !loading && <FeatureHelpButton currentTab={tab === 'tutor' && tutorMode === 'planner' ? 'helper' : tab} />}
+      {user && !loading && <FeatureHelpButton currentTab={tab === 'planner' ? 'helper' : tab} />}
+      {user && !loading && <BuddyBot userId={user.uid} />}
     </div>
   );
 };

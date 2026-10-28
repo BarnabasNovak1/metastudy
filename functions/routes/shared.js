@@ -379,8 +379,8 @@ async function checkUsageLimit(uid) {
 }
 
 // Keep the reservation token for a refund if the downstream AI call fails.
-async function reserveUsage(uid) {
-  return reserveUserUsage(fdb, uid);
+async function reserveUsage(uid, cost = 1) {
+  return reserveUserUsage(fdb, uid, cost);
 }
 
 // Return a previously reserved usage slot after a downstream failure.

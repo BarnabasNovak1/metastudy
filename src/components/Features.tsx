@@ -7,7 +7,7 @@ import { FadeIn } from "@/components/PageTransition";
 import { AnimatedHeroDemo } from "@/components/AnimatedHeroDemo";
 import {
   MessageSquare, FileText, Layers, ListChecks, BookOpen, FileCheck,
-  Users, ScanText, PenLine, Save, Flame
+  Users, ScanText, PenLine, Save, Flame, Bot
 } from "lucide-react";
 
 const featureList = [
@@ -32,9 +32,14 @@ const featureList = [
     description: "Material in, quiz out — with AI-graded short answers, not just multiple choice. Write your own questions anytime.",
   },
   {
+    icon: Bot,
+    title: "Study Buddy",
+    description: "A personal companion in the corner of your study space — remembers you, keeps you motivated and honest, and recommends the right tool.",
+  },
+  {
     icon: BookOpen,
-    title: "Adaptive Tutor",
-    description: "Generates full lessons on your topic, then quizzes you adaptively — every question shaped by what you actually understood.",
+    title: "Planner & Creator",
+    description: "Turn any topic or file into a complete lesson — sections, objectives, flashcards, quizzes, and homework.",
   },
   {
     icon: ScanText,

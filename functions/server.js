@@ -10,7 +10,7 @@ import { register as registerStudy } from './routes/study.js';
 import { register as registerCareer } from './routes/career.js';
 import { register as registerBilling } from './routes/billing.js';
 import { register as registerAccount } from './routes/account.js';
-import { register as registerTutor } from './routes/tutor.js';
+import { register as registerBuddy } from './routes/buddy.js';
 
 export const app = expressApp;
 
@@ -18,7 +18,7 @@ registerStudy(app);
 registerCareer(app);
 registerBilling(app);
 registerAccount(app);
-registerTutor(app);
+registerBuddy(app);
 
 // Only run a local server when explicitly asked; Firebase Functions will handle HTTP in production
 if (process.env.EXPRESS_STANDALONE === 'true') {

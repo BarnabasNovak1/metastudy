@@ -42,14 +42,14 @@ const FaqPage = () => {
           "metastudy-e1ba2.web.app", "FAQ", "help", "support", "study tools", "career tools",
           "MetaStudy", "AI study tools", "Meta Llama", "flashcards",
           "quizzes", "summarizer", "resume builder", "interview prep",
-          "adaptive tutor", "study chat"
+          "study buddy", "study chat"
         ]}
         jsonLd={[{
           "@context":"https://schema.org",
           "@type":"FAQPage",
           "mainEntity":[
             {"@type":"Question","name":"Who is MetaStudy for?","acceptedAnswer":{"@type":"Answer","text":"Students, professionals, and lifelong learners who want AI-powered study tools and career development in one place."}},
-            {"@type":"Question","name":"What tools are included?","acceptedAnswer":{"@type":"Answer","text":"Study Chat, Summarizer, Flashcards, Quiz Generator, Adaptive Tutor, Resume Grader, LinkedIn Post Writer, Interview Prep, and Career Recommendations."}},
+            {"@type":"Question","name":"What tools are included?","acceptedAnswer":{"@type":"Answer","text":"Study Chat, Summarizer, Flashcards, Quiz Generator, Study Buddy, Lesson Planner, Resume Grader, LinkedIn Post Writer, Interview Prep, and Career Recommendations."}},
             {"@type":"Question","name":"What powers MetaStudy?","acceptedAnswer":{"@type":"Answer","text":"Meta's Llama models, accessed through the official Llama API."}}
           ]
         }]}
@@ -119,7 +119,7 @@ const FaqPage = () => {
               {[
                 {
                   q: "What is MetaStudy?",
-                  a: `MetaStudy turns your study materials into tools you can actually learn from. Drop in notes, slides, PDFs, or photos of handwriting — and get back flashcards, quizzes, summaries, and a study chat that knows your material.\n\nWhat's inside:\n• Study Chat with multiple personality modes\n• Smart Summarizer for dense materials\n• Flashcard & Quiz generators (or build by hand)\n• Adaptive Tutor for lessons and adaptive practice\n• Essay drafting & AI grading\n• Career tools (resume, LinkedIn, mock interviews)\n• Study Feed — a community for shared challenges`
+                  a: `MetaStudy turns your study materials into tools you can actually learn from. Drop in notes, slides, PDFs, or photos of handwriting — and get back flashcards, quizzes, summaries, and a study chat that knows your material.\n\nWhat's inside:\n• Study Chat with multiple personality modes\n• Smart Summarizer for dense materials\n• Flashcard & Quiz generators (or build by hand)\n• Study Buddy, a companion that remembers you\n• Planner & Creator for full lessons\n• Essay drafting & AI grading\n• Career tools (resume, LinkedIn, mock interviews)\n• Study Feed — a community for shared challenges`
                 },
                 {
                   q: "Who is MetaStudy for?",
@@ -153,7 +153,7 @@ const FaqPage = () => {
               {[
                 {
                   q: "What study tools are included?",
-                  a: `The full toolkit:\n\n• Study Chat: a tutor that adapts to how you learn\n• Summarizer: condense long content into key points\n• Flashcards: auto-generate decks or write your own\n• Quiz Generator: multiple choice, true/false, fill-in-blank\n• Adaptive Tutor: generated lessons plus questions that adapt to you\n• Essay Writer & Grader: drafts plus detailed feedback\n• Study Feed: share sets, join challenges, climb leaderboards`
+                  a: `The full toolkit:\n\n• Study Chat: a tutor that adapts to how you learn\n• Summarizer: condense long content into key points\n• Flashcards: auto-generate decks or write your own\n• Quiz Generator: multiple choice, true/false, fill-in-blank\n• Planner & Creator: full generated lessons\n• Study Buddy: a personal companion that remembers you\n• Essay Writer & Grader: drafts plus detailed feedback\n• Study Feed: share sets, join challenges, climb leaderboards`
                 },
                 {
                   q: "How does Study Chat work?",
@@ -164,8 +164,8 @@ const FaqPage = () => {
                   a: `Yes. Snap a photo of a notebook, whiteboard, or worksheet and MetaStudy converts it to text with vision AI. From there you can summarize it, quiz yourself on it, or turn it into flashcards.`
                 },
                 {
-                  q: "What is the Adaptive Tutor?",
-                  a: `One feature, two ways to learn (Advanced/Pro):\n\n• Lessons: give it a topic or upload a file and it builds a complete lesson — sections, objectives, worked examples, and study duration estimates\n• Adaptive practice: start a session on your notes, summaries, quizzes, or a generated lesson and it asks questions one at a time, adapting each one to what you actually understood\n\nEvery answer gets feedback targeting your specific misconception, and it tracks which concepts you've mastered versus which need review.`
+                  q: "What is the Study Buddy?",
+                  a: `Buddy is the little robot in the corner of your Study page — a personal study companion that chats like a friend. It remembers your goals and struggles between conversations, keeps you motivated, gives honest pushback when you need it (it won't just agree with everything), and points you at the right tool when you need one.\n\nPick its personality in Settings — it shares the AI Chat personalities. Each message costs half a credit, and Buddy chats are saved into your AI Chat history.\n\nIt won't do the work of the study tools (no summaries, quizzes, or file reading) — for that it'll recommend the right feature, like the Planner & Creator for generated lessons (Advanced/Pro).`
                 },
                 {
                   q: "What is the Study Feed?",
@@ -191,7 +191,7 @@ const FaqPage = () => {
               {[
                 {
                   q: "What plans are available?",
-                  a: `Four plans:\n\nFree — $0/month\n• 5 uses/month, 3,000 words per use\n• Study Chat, Summarizer, Flashcards\n• No credit card required\n\nBasic — $9.99/month\n• 50 uses/month, 5,000 words per use\n• + Quiz Generator\n\nAdvanced — $16.99/month (most popular)\n• 200 uses/month, 7,000 words per use\n• + Adaptive Tutor & Lesson Generator, Career tools, Study Feed\n\nPro — $19.99/month\n• 500 uses/month, 15,000 words per use\n• Everything unlocked`
+                  a: `Four plans:\n\nFree — $0/month\n• 5 uses/month, 3,000 words per use\n• Study Chat, Summarizer, Flashcards, Study Buddy\n• No credit card required\n\nBasic — $9.99/month\n• 50 uses/month, 5,000 words per use\n• + Quiz Generator\n\nAdvanced — $16.99/month (most popular)\n• 200 uses/month, 7,000 words per use\n• + Planner & Creator, Career tools, Study Feed\n\nPro — $19.99/month\n• 500 uses/month, 15,000 words per use\n• Everything unlocked`
                 },
                 {
                   q: "What counts as a 'use'?",

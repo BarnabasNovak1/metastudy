@@ -1,6 +1,9 @@
 // Quota data is read and changed in one transaction, before calling Llama.
-export async function reserveUserUsage(db, uid) {
+// cost supports fractional credits (e.g. 0.5 for the buddy chat); it rides
+// inside `consumed` so refunds stay symmetric without a new signature.
+export async function reserveUserUsage(db, uid, cost = 1) {
   if (!db || !uid) throw new Error('Usage service unavailable. Please try again.');
+  const creditCost = Math.max(0.1, Math.min(5, Number(cost) || 1));
   const userRef = db.collection('users').doc(uid);
   const countersRef = userRef.collection('meta').doc('counters');
   return db.runTransaction(async (tx) => {
@@ -28,19 +31,19 @@ export async function reserveUserUsage(db, uid) {
     }
     const extra = Number(current.extra_uses_balance || 0);
     const kind = uses >= quota ? 'extra' : 'monthly';
-    if (kind === 'extra' && extra <= 0) return { allowed: false, error: 'Monthly uses limit reached' };
+    if (kind === 'extra' && extra < creditCost) return { allowed: false, error: 'Monthly uses limit reached' };
     tx.set(countersRef, {
       ...resets,
       ...(kind === 'extra'
-        ? { extra_uses_balance: extra - 1, extra_uses_used: extraUsed + 1 }
-        : { uses_this_month: uses + 1 }),
+        ? { extra_uses_balance: Math.max(0, extra - creditCost), extra_uses_used: extraUsed + creditCost }
+        : { uses_this_month: uses + creditCost }),
     }, { merge: true });
     return {
       allowed: true,
-      consumed: { kind, period },
+      consumed: { kind, period, cost: creditCost },
       plan: profile.plan || 'free', monthlyQuota: quota,
-      usesThisMonth: kind === 'monthly' ? uses + 1 : uses,
-      extraUsesBalance: kind === 'extra' ? extra - 1 : extra,
+      usesThisMonth: kind === 'monthly' ? uses + creditCost : uses,
+      extraUsesBalance: kind === 'extra' ? Math.max(0, extra - creditCost) : extra,
       wordLimit: Number(profile.word_limit || 3000),
       consumedFromExtra: kind === 'extra',
     };
@@ -49,6 +52,7 @@ export async function reserveUserUsage(db, uid) {
 
 export async function refundUserUsage(db, uid, consumed) {
   if (!db || !uid || !consumed) return;
+  const cost = Math.max(0.1, Math.min(5, Number(consumed.cost) || 1));
   const userRef = db.collection('users').doc(uid);
   const countersRef = userRef.collection('meta').doc('counters');
   await db.runTransaction(async (tx) => {
@@ -58,11 +62,11 @@ export async function refundUserUsage(db, uid, consumed) {
     const samePeriod = (current.usage_period_end || null) === consumed.period;
     if (consumed.kind === 'extra') {
       tx.update(countersRef, {
-        extra_uses_balance: Number(current.extra_uses_balance || 0) + 1,
-        ...(samePeriod ? { extra_uses_used: Math.max(0, Number(current.extra_uses_used || 0) - 1) } : {}),
+        extra_uses_balance: Number(current.extra_uses_balance || 0) + cost,
+        ...(samePeriod ? { extra_uses_used: Math.max(0, Number(current.extra_uses_used || 0) - cost) } : {}),
       });
     } else if (samePeriod) {
-      tx.update(countersRef, { uses_this_month: Math.max(0, Number(current.uses_this_month || 0) - 1) });
+      tx.update(countersRef, { uses_this_month: Math.max(0, Number(current.uses_this_month || 0) - cost) });
     }
   });
 }
