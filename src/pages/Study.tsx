@@ -5,7 +5,7 @@ import { useUserData } from "@/contexts/UserDataContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { BookOpen, MessageSquare, Layers, ListChecks, GraduationCap, Briefcase, Sun, Moon, ChevronRight, Users, Search, UserCircle, ChevronUp, Star, Bell, Loader2, BarChart3 } from "lucide-react";
+import { BookOpen, MessageSquare, Layers, ListChecks, GraduationCap, Briefcase, Sun, Moon, ChevronRight, Users, Search, UserCircle, ChevronUp, Star, Bell, Loader2, BarChart3, BrainCircuit } from "lucide-react";
 import MetaStudyLogo from "@/assets/metastudy-icon.png";
 import { AccountMenu } from "@/components/AccountMenu";
 import { UnifiedProfilePopup } from "@/components/UnifiedProfilePopup";
@@ -32,6 +32,7 @@ const StudyQuiz = lazy(() => import("@/components/study/StudyQuiz").then((m) => 
 const StudyHelper = lazy(() => import("@/components/study/StudyHelper").then((m) => ({ default: m.StudyHelper })));
 const CareerLaunchpad = lazy(() => import("@/components/study/CareerLaunchpad").then((m) => ({ default: m.CareerLaunchpad })));
 const StudyFeed = lazy(() => import("@/components/study/StudyFeed").then((m) => ({ default: m.StudyFeed })));
+const AdaptiveTutor = lazy(() => import("@/components/study/AdaptiveTutor").then((m) => ({ default: m.AdaptiveTutor })));
 
 const Study = () => {
   const userData = useUserData();
@@ -770,7 +771,7 @@ const Study = () => {
         (window as any).studyCreateFrom = (detail: any) => {
           try {
             const t = String(detail?.type || '').toLowerCase();
-            const dest = t === 'flashcards' ? 'flashcards' : t === 'quiz' ? 'quizzes' : t === 'chat' ? 'chat' : 'summarizer';
+            const dest = t === 'flashcards' ? 'flashcards' : t === 'quiz' ? 'quizzes' : t === 'chat' ? 'chat' : t === 'tutor' ? 'tutor' : 'summarizer';
             // Switch tab first
             setTab(dest);
             // Dispatch after a small delay to allow mount
@@ -1025,7 +1026,7 @@ const Study = () => {
           }
           setTab(next);
         }} className="w-full">
-          <TabsList className="grid w-full grid-cols-7 mb-8 bg-background text-foreground" data-study-tabs="true">
+          <TabsList className="grid w-full grid-cols-8 mb-8 bg-background text-foreground" data-study-tabs="true">
             <TabsTrigger value="chat" data-tour="chat-tab" className="flex items-center justify-center gap-2 py-2 sm:py-3 text-xs sm:text-sm rounded-md transition-colors hover:bg-accent/50 data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">
               <MessageSquare className="w-4 h-4" />
               <span className="hidden sm:inline">AI Chat</span>
@@ -1073,6 +1074,10 @@ const Study = () => {
             >
               <GraduationCap className="w-4 h-4" />
               <span className="hidden sm:inline">Feed</span>
+            </TabsTrigger>
+            <TabsTrigger value="tutor" data-tour="tutor-tab" className="flex items-center justify-center gap-2 py-2 sm:py-3 text-xs sm:text-sm rounded-md transition-colors hover:bg-accent/50 data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">
+              <BrainCircuit className="w-4 h-4" />
+              <span className="hidden sm:inline">Tutor</span>
             </TabsTrigger>
           </TabsList>
 
@@ -1128,6 +1133,10 @@ const Study = () => {
             )}
           </TabsContent>
 
+
+          <TabsContent value="tutor" className="mt-0">
+            <AdaptiveTutor userId={user?.uid || ""} />
+          </TabsContent>
 
           <TabsContent value="career" className="mt-0">
             {gate?.careerAccess ? (

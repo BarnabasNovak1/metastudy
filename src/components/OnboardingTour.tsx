@@ -293,6 +293,13 @@ export const FEATURE_TOURS: Record<string, Step[]> = {
     { target: '[data-tour="feed-discover-groups"]', content: '🔍 DISCOVER GROUPS: Browse public groups to join instantly, or request to join private ones (the owner or an admin approves).', title: '🔍 Discover Groups', disableBeacon: true, placement: 'auto' },
     { target: '[data-tour="feed-join-challenge"]', content: 'Click on any challenge card to join it! Once joined, complete the content to earn points. Note: Leaderboards are only available for Quiz challenges. Flashcards and Lessons don\'t have leaderboards.', title: '🎯 Join a Challenge', disableBeacon: true, placement: 'auto' },
   ],
+  // Adaptive Tutor tour
+  tutor: [
+    { target: '[data-tour="tutor-new"]', content: 'Start a diagnostic session here. The tutor builds learning objectives from YOUR material, then adapts each question to what you actually understand.', title: '🧠 Adaptive Tutor', disableBeacon: true, placement: 'auto' },
+    { target: '[data-tour="tutor-setup-source"]', content: 'Pick saved summaries or paste notes. The tutor grounds every question and explanation in this material, not generic trivia.', title: '📚 Source Material', disableBeacon: true, placement: 'auto' },
+    { target: '[data-tour="tutor-question"]', content: 'Answer questions one at a time. After each answer you get feedback that targets your specific misconception, then the next question adapts.', title: '❓ Answer & Adapt', disableBeacon: true, placement: 'auto' },
+    { target: '[data-tour="tutor-mastery"]', content: 'Each concept gets a mastery score: Needs review (below 50), Developing (50-79), or Understood (80+). You can revisit missed concepts in a review session.', title: '📊 Concept Mastery', disableBeacon: true, placement: 'auto' },
+  ],
   // Management tab tour
   account: [
     { target: '[data-tour="account-tabs"]', content: 'Navigate between Management, Friends, Achievements, and Statistics tabs. Each tab has different features!', title: '⚙️ Account Navigation', disableBeacon: true, placement: 'auto' },
@@ -532,6 +539,7 @@ const TAB_TO_FEATURE: Record<string, string> = {
   plans: 'helper',
   career: 'career',
   feed: 'feed',
+  tutor: 'tutor',
   account: 'account',
   // Account sub-tabs
   'account-usage': 'account',
@@ -699,6 +707,7 @@ export function FeatureHelpButton({ currentTab }: FeatureHelpButtonProps) {
       helper: 'Lesson Generator',
       career: 'Career Launchpad',
       feed: 'Study Feed',
+      tutor: 'Adaptive Tutor',
       account: 'Account',
       'account-friends': 'Friends',
       'account-achievements': 'Achievements',

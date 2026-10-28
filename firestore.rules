@@ -163,6 +163,14 @@ service cloud.firestore {
         allow write: if isOwner(userId);
       }
 
+      // Adaptive Tutor sessions: owner-only. Answers live in a subcollection.
+      match /tutorSessions/{sessionId} {
+        allow read, write: if isOwner(userId);
+        match /answers/{answerId} {
+          allow read, write: if isOwner(userId);
+        }
+      }
+
 
       // Runs: owner-only. Public challenge stats are mirrored to public_profiles.
       match /runs/{runId} {

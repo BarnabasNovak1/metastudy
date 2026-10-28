@@ -97,7 +97,7 @@ export const CrossCreatePicker = ({ userId, open, onOpenChange, initialTab, allo
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState<Record<string, Item[]>>({});
   const [selected, setSelected] = useState<Item[]>([]);
-  const [dest, setDest] = useState<'summary'|'flashcards'|'quiz'>('summary');
+  const [dest, setDest] = useState<'summary'|'flashcards'|'quiz'|'tutor'>('summary');
   const disabledQuiz = gate.loading ? false : !gate.quizAccess;
   
   // Derive usesBlocked from centralized useUserData (no duplicate listener)
@@ -292,6 +292,10 @@ export const CrossCreatePicker = ({ userId, open, onOpenChange, initialTab, allo
                 <div className="flex items-center space-x-2 opacity-100">
                   <RadioGroupItem value="quiz" id="dest-quiz" disabled={disabledQuiz} />
                   <Label htmlFor="dest-quiz" className={disabledQuiz ? 'text-muted-foreground' : ''}>Create Quiz {disabledQuiz && '(Upgrade required)'}</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="tutor" id="dest-tutor" />
+                  <Label htmlFor="dest-tutor">Practice with Tutor</Label>
                 </div>
               </RadioGroup>
             </div>
