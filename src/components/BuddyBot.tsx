@@ -8,6 +8,8 @@ import { useToast } from "@/hooks/use-toast";
 import { db } from "../../firebase";
 import { collection, getDocs, limit, query, where, orderBy } from "firebase/firestore";
 import { sendBuddyMessage, type BuddySuggestion } from "@/lib/buddy";
+import { useUserData } from "@/contexts/UserDataContext";
+import { bubbleColorFor } from "@/lib/bubble-colors";
 
 interface BuddyMessage {
   role: "user" | "assistant";
@@ -25,6 +27,11 @@ export function BuddyBot({ userId }: { userId: string }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { profile } = useUserData();
+  const buddyColor = bubbleColorFor(
+    (profile as any)?.personality_colors,
+    (profile as any)?.buddy_personality || 'studybuddy'
+  );
 
   // Load the persistent buddy conversation on first open
   useEffect(() => {
@@ -106,7 +113,7 @@ export function BuddyBot({ userId }: { userId: string }) {
               )}
               {messages.map((m, i) => (
                 <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[85%] px-3 py-2 text-sm border-2 border-foreground ${m.role === "user" ? "bg-accent text-accent-foreground" : "bg-background"}`}>
+                  <div className={`max-w-[85%] px-3 py-2 text-sm border-2 border-foreground ${m.role === "user" ? "bg-accent text-accent-foreground" : buddyColor ? `${buddyColor.bgColor} ${buddyColor.textColor}` : "bg-background"}`}>
                     <p className="whitespace-pre-wrap">{m.content}</p>
                     {m.suggestion && (
                       <button

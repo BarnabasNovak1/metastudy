@@ -17,6 +17,7 @@ import {
   query,
   orderBy,
   updateDoc,
+  setDoc,
   serverTimestamp,
   getDoc,
   writeBatch,
@@ -28,7 +29,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Play, Loader2, MessageSquare, Plus, Trash2, Pencil, Menu, X, FileText, Paperclip, Copy, CheckCheck, Users, GraduationCap, User, Search, Ghost, Smile, ChevronDown, CheckSquare, Square } from "lucide-react";
+import { Play, Loader2, MessageSquare, Plus, Trash2, Pencil, Menu, X, FileText, Paperclip, Copy, CheckCheck, Users, GraduationCap, User, Search, Ghost, Smile, ChevronDown, CheckSquare, Square, Palette } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { recordDailyVisit } from "@/lib/achievements";
 import { usePlanGate } from "@/hooks/use-plan-gate";
@@ -36,6 +37,7 @@ import { awardAchievement, incrementCounterAndMaybeAward, awardActionXP, increme
 import { CrossCreatePicker } from "@/components/CrossCreatePicker";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { extractTextFromFile } from "@/lib/extractTextFromFile";
+import { BUBBLE_COLOR_PRESETS, bubbleColorFor } from "@/lib/bubble-colors";
 
 interface Message {
   role: "user" | "assistant";
@@ -128,6 +130,19 @@ export const StudyChat = ({ userId }: { userId: string }) => {
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [selectedPersonality, setSelectedPersonality] = useState<string>("normal");
+  const personalityColors = useMemo(
+    () => ((userData.profile as any)?.personality_colors || {}) as Record<string, string>,
+    [userData.profile]
+  );
+
+  const setPersonalityColor = async (colorId: string | null) => {
+    const next = { ...personalityColors };
+    if (colorId) next[selectedPersonality] = colorId;
+    else delete next[selectedPersonality];
+    try {
+      await setDoc(doc(db, "users", userId), { personality_colors: next }, { merge: true });
+    } catch {}
+  };
 
   // AI Personalities with enhanced color schemes
   const aiPersonalities: AIPersonality[] = [
@@ -1091,11 +1106,38 @@ export const StudyChat = ({ userId }: { userId: string }) => {
                         }}
                       >
                         <div className="flex items-center gap-2">
-                          <div className={`w-2 h-2 rounded-full ${personality.bgColor}`} />
+                          <div className={`w-2 h-2 rounded-full ${bubbleColorFor(personalityColors, personality.id)?.bgColor || personality.bgColor}`} />
                           <span>{personality.name}</span>
                         </div>
                       </DropdownMenuItem>
                     ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="flex items-center gap-2" title="Bubble color">
+                      <Palette className="w-4 h-4" />
+                      <span className={`w-3 h-3 rounded-full border ${bubbleColorFor(personalityColors, selectedPersonality)?.bgColor || currentPersonality.bgColor}`} />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-56 p-3">
+                    <p className="text-xs text-muted-foreground mb-2">Bubble color for {currentPersonality.name}</p>
+                    <div className="grid grid-cols-6 gap-2">
+                      {BUBBLE_COLOR_PRESETS.map((preset) => (
+                        <button
+                          key={preset.id}
+                          type="button"
+                          title={preset.label}
+                          onClick={() => setPersonalityColor(preset.id)}
+                          className={`w-6 h-6 rounded-full ${preset.bgColor} border ${preset.borderColor} ${
+                            personalityColors[selectedPersonality] === preset.id ? "ring-2 ring-offset-2 ring-foreground" : ""
+                          }`}
+                        />
+                      ))}
+                    </div>
+                    <DropdownMenuItem onClick={() => setPersonalityColor(null)} className="mt-2 text-xs">
+                      Reset to default
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -1149,9 +1191,12 @@ export const StudyChat = ({ userId }: { userId: string }) => {
                       const persona = m.role === 'assistant'
                         ? (aiPersonalities.find(p => p.id === (m.assistant_personality_id || selectedPersonality)) || currentPersonality)
                         : null;
+                      const override = m.role === 'assistant' && persona
+                        ? bubbleColorFor(personalityColors, persona.id)
+                        : null;
                       const bubbleClass = m.role === 'user'
                         ? 'bg-blue-500 text-white rounded-br-none'
-                        : `${persona!.bgColor} ${persona!.textColor} rounded-bl-none border ${persona!.borderColor}`;
+                        : `${override?.bgColor || persona!.bgColor} ${override?.textColor || persona!.textColor} rounded-bl-none border ${override?.borderColor || persona!.borderColor}`;
                       const preserve = m.role === 'user' ? 'whitespace-pre-wrap' : '';
                       const normalized = (() => {
                         const s = String(m.content || '');
