@@ -3,7 +3,8 @@
 // replies like a friend (supportive but honest), and recommends in-app
 // next steps. Costs 0.5 credits per message and never does the heavy
 // tools' work (no summaries, quizzes, lessons, or file reading).
-// Conversation persists into chat_sessions so it shows up in AI Chat.
+// Conversation persists into chat_sessions (kind='buddy') so Buddy keeps
+// history across opens; AI Chat filters these out of the session sidebar.
 // ================================================================
 import {
   requireAuth, enforceWordLimit, enforceDailyAILimit, aiLimiter,

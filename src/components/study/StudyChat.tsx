@@ -429,13 +429,15 @@ export const StudyChat = ({ userId }: { userId: string }) => {
       // Limit to 50 most recent sessions to reduce reads
       const q = query(sessionsRef, orderBy("updated_at", "desc"), limit(50));
       const snap = await getDocs(q);
-      const data: ChatSession[] = snap.docs.map((d) => ({
-        id: d.id,
-        title: (d.data() as any).title || 'New Chat',
-        created_at: (d.data() as any).created_at || new Date().toISOString(),
-        personality_id: (d.data() as any).personality_id,
-        personalities: (d.data() as any).personalities,
-      }));
+      const data: ChatSession[] = snap.docs
+        .filter((d) => (d.data() as any).kind !== 'buddy')
+        .map((d) => ({
+          id: d.id,
+          title: (d.data() as any).title || 'New Chat',
+          created_at: (d.data() as any).created_at || new Date().toISOString(),
+          personality_id: (d.data() as any).personality_id,
+          personalities: (d.data() as any).personalities,
+        }));
       setSessions(data);
     } catch (error: any) {
       toast({ title: "Error", description: error.message || "Failed to load sessions", variant: "destructive" });
