@@ -48,16 +48,6 @@ const Study = () => {
     }
     return "chat";
   });
-  const [tutorMode, setTutorMode] = useState<'practice' | 'lesson'>(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("tutor_mode") === "lesson" ? "lesson" : "practice";
-    }
-    return "practice";
-  });
-  useEffect(() => {
-    localStorage.setItem("tutor_mode", tutorMode);
-  }, [tutorMode]);
-  
   useEffect(() => {
     localStorage.setItem("study_tab", tab);
   }, [tab]);
@@ -1053,7 +1043,12 @@ const Study = () => {
               <ListChecks className="w-4 h-4" />
               <span className="hidden sm:inline">Quizzes</span>
             </TabsTrigger>
-            <TabsTrigger value="tutor" data-tour="tutor-tab" className="flex items-center justify-center gap-2 py-2 sm:py-3 text-xs sm:text-sm rounded-md transition-colors hover:bg-accent/50 data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">
+            <TabsTrigger
+              value="tutor"
+              data-tour="tutor-tab"
+              aria-disabled={!gate?.studyPlans}
+              className={`flex items-center justify-center gap-2 py-2 sm:py-3 text-xs sm:text-sm rounded-md transition-colors hover:bg-accent/50 data-[state=active]:bg-accent data-[state=active]:text-accent-foreground ${!gate?.studyPlans ? 'opacity-60 cursor-not-allowed' : ''}`}
+            >
               <BrainCircuit className="w-4 h-4" />
               <span className="hidden sm:inline">Tutor</span>
             </TabsTrigger>
@@ -1096,36 +1091,21 @@ const Study = () => {
           </TabsContent>
 
           <TabsContent value="tutor" className="mt-0">
-            {/* Tutor hub: adaptive practice + lesson generator share one feature surface */}
-            <Tabs value={tutorMode} onValueChange={(v) => setTutorMode(v as 'practice' | 'lesson')} className="w-full">
-              <TabsList className="grid w-full grid-cols-2" data-tour="tutor-modes">
-                <TabsTrigger value="practice">
-                  <BrainCircuit className="w-4 h-4 mr-2" />
-                  Practice
-                </TabsTrigger>
-                <TabsTrigger value="lesson">
-                  <GraduationCap className="w-4 h-4 mr-2" />
-                  Lesson Generator
-                  {!gate?.studyPlans && <span className="ml-2 text-[10px] uppercase tracking-wide text-muted-foreground/70">Advanced+</span>}
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-            <div className="mt-6">
-            {tutorMode === 'lesson' ? (
-              gate?.studyPlans ? (
-                <StudyHelper ref={studyHelperRef} userId={user?.uid || ""} />
-              ) : (
-                <div className="min-h-[200px] flex items-center justify-center">
-                  <div className="text-center space-y-2">
-                    <p className="text-sm text-muted-foreground">Lesson Generator is available on Advanced and Pro plans.</p>
-                    <Button onClick={() => { setUpsellMsg('Lesson Generator is included with Advanced and Pro plans. Upgrade to generate full lessons, then practice them in the tutor.'); setUpsellOpen(true); }}>View Plans</Button>
-                  </div>
+            {gate?.studyPlans ? (
+              <div className="space-y-8">
+                <AdaptiveTutor userId={user?.uid || ""} />
+                <div className="border-t border-border pt-8" data-tour="tutor-lesson-gen">
+                  <StudyHelper ref={studyHelperRef} userId={user?.uid || ""} />
                 </div>
-              )
+              </div>
             ) : (
-              <AdaptiveTutor userId={user?.uid || ""} />
+              <div className="min-h-[200px] flex items-center justify-center">
+                <div className="text-center space-y-2">
+                  <p className="text-sm text-muted-foreground">The Adaptive Tutor and Lesson Generator are available on Advanced and Pro plans.</p>
+                  <Button onClick={() => { setUpsellMsg('The Adaptive Tutor and Lesson Generator are included with Advanced and Pro plans. Upgrade to generate lessons and practice with adaptive questions.'); setUpsellOpen(true); }}>View Plans</Button>
+                </div>
+              </div>
             )}
-            </div>
           </TabsContent>
 
           <TabsContent value="feed" className="mt-0">
@@ -1528,7 +1508,7 @@ const Study = () => {
       {user && !loading && <OnboardingTour />}
       
       {/* Feature Help Button */}
-      {user && !loading && <FeatureHelpButton currentTab={tab === 'tutor' && tutorMode === 'lesson' ? 'helper' : tab} />}
+      {user && !loading && <FeatureHelpButton currentTab={tab} />}
     </div>
   );
 };

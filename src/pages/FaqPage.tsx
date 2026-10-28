@@ -165,7 +165,7 @@ const FaqPage = () => {
                 },
                 {
                   q: "What is the Adaptive Tutor?",
-                  a: `One feature, two ways to learn:\n\n• Lesson mode (Advanced/Pro): give it a topic or upload a file and it builds a complete lesson — sections, objectives, worked examples, and study duration estimates\n• Practice mode: start a session on your notes, summaries, quizzes, or a generated lesson and it asks questions one at a time, adapting each one to what you actually understood\n\nEvery answer gets feedback targeting your specific misconception, and it tracks which concepts you've mastered versus which need review.`
+                  a: `One feature, two ways to learn (Advanced/Pro):\n\n• Lessons: give it a topic or upload a file and it builds a complete lesson — sections, objectives, worked examples, and study duration estimates\n• Adaptive practice: start a session on your notes, summaries, quizzes, or a generated lesson and it asks questions one at a time, adapting each one to what you actually understood\n\nEvery answer gets feedback targeting your specific misconception, and it tracks which concepts you've mastered versus which need review.`
                 },
                 {
                   q: "What is the Study Feed?",
@@ -191,7 +191,7 @@ const FaqPage = () => {
               {[
                 {
                   q: "What plans are available?",
-                  a: `Four plans:\n\nFree — $0/month\n• 5 uses/month, 3,000 words per use\n• Study Chat, Summarizer, Flashcards, Adaptive Tutor\n• No credit card required\n\nBasic — $9.99/month\n• 50 uses/month, 5,000 words per use\n• + Quiz Generator\n\nAdvanced — $16.99/month (most popular)\n• 200 uses/month, 7,000 words per use\n• + Lesson Generator, Career tools, Study Feed\n\nPro — $19.99/month\n• 500 uses/month, 15,000 words per use\n• Everything unlocked`
+                  a: `Four plans:\n\nFree — $0/month\n• 5 uses/month, 3,000 words per use\n• Study Chat, Summarizer, Flashcards\n• No credit card required\n\nBasic — $9.99/month\n• 50 uses/month, 5,000 words per use\n• + Quiz Generator\n\nAdvanced — $16.99/month (most popular)\n• 200 uses/month, 7,000 words per use\n• + Adaptive Tutor & Lesson Generator, Career tools, Study Feed\n\nPro — $19.99/month\n• 500 uses/month, 15,000 words per use\n• Everything unlocked`
                 },
                 {
                   q: "What counts as a 'use'?",
