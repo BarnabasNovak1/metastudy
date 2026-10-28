@@ -897,7 +897,7 @@ const Study = () => {
           />
         );
       })()}
-      <header className="border-b border-border/40 backdrop-blur-sm sticky top-0 z-[80]" data-study-header="true">
+      <header className="border-b border-border/40 backdrop-blur-sm sticky top-0 z-50" data-study-header="true">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3 min-w-0">
             <img src={MetaStudyLogo} alt="Logo" className="h-10 w-auto object-contain shrink-0" />
