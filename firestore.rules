@@ -120,7 +120,7 @@ service cloud.firestore {
         // Only allow these specific non-sensitive fields
         request.resource.data.diff(resource.data).affectedKeys().hasOnly([
           'first_name', 'last_name', 'photo_url', 'photoURL', 'institutionId', 'schoolName', 'bio', 'education_level',
-          'chat_retention_days'
+          'chat_retention_days', 'buddy_personality', 'personality_colors'
         ]) &&
         // chat_retention_days may only be 0 (keep forever), 30, or 90
         (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['chat_retention_days'])
