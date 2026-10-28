@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bot, Send, X, Loader2 } from "lucide-react";
+import { Bot, Send, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -86,8 +86,8 @@ export function BuddyBot({ userId }: { userId: string }) {
     <div className="fixed bottom-4 right-4 z-[70] flex flex-col items-end gap-3">
       {open && (
         <div className="w-[min(92vw,380px)] h-[min(70vh,520px)] bg-card border-2 border-foreground hard-shadow flex flex-col overflow-hidden">
-          <div className="flex items-center gap-2 px-3 py-2 border-b-2 border-foreground bg-secondary">
-            <Bot className="w-4 h-4" />
+          <div className="flex items-center gap-2 px-3 py-2 border-b-2 border-foreground bg-accent text-accent-foreground">
+            <Bot className={`w-4 h-4 ${sending ? 'animate-buddy-shake' : ''}`} />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold leading-tight">Buddy</p>
               <p className="text-[10px] text-muted-foreground leading-tight">0.5 credits per message</p>
@@ -122,8 +122,13 @@ export function BuddyBot({ userId }: { userId: string }) {
               ))}
               {sending && (
                 <div className="flex justify-start">
-                  <div className="px-3 py-2 text-sm border-2 border-foreground bg-background">
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                  <div className="px-3 py-2 text-sm border-2 border-foreground bg-background flex items-center gap-1.5">
+                    <Bot className="w-4 h-4 animate-buddy-shake" />
+                    <span className="flex gap-0.5" aria-label="Buddy is thinking">
+                      <span className="w-1 h-1 rounded-full bg-foreground animate-pulse" style={{ animationDelay: '0ms' }} />
+                      <span className="w-1 h-1 rounded-full bg-foreground animate-pulse" style={{ animationDelay: '150ms' }} />
+                      <span className="w-1 h-1 rounded-full bg-foreground animate-pulse" style={{ animationDelay: '300ms' }} />
+                    </span>
                   </div>
                 </div>
               )}
@@ -152,11 +157,17 @@ export function BuddyBot({ userId }: { userId: string }) {
         variant="default"
         size="icon"
         onClick={() => setOpen((o) => !o)}
-        className="h-10 w-10 sm:h-11 sm:w-11 bg-accent text-accent-foreground border-2 border-foreground hard-shadow-sm hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none transition-all"
+        className="relative h-10 w-10 sm:h-11 sm:w-11 bg-accent text-accent-foreground border-2 border-foreground hard-shadow-sm hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none transition-all"
         aria-label={open ? "Close Buddy" : "Chat with Buddy"}
         title="Buddy, your study companion"
       >
-        <Bot className="w-5 h-5" />
+        {!open && !sending && (
+          <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+            <span className="animate-buddy-ping absolute inline-flex h-full w-full rounded-full bg-green-500" />
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500 border border-foreground" />
+          </span>
+        )}
+        <Bot className={`w-5 h-5 ${sending ? 'animate-buddy-shake' : 'animate-buddy-bob'}`} />
       </Button>
     </div>
   );

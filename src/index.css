@@ -405,8 +405,46 @@ All colors MUST be HSL.
   animation: tickerScroll 30s linear infinite;
 }
 
+/* Buddy bot: gentle idle bob keeps it feeling alive */
+@keyframes buddyBob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-2px) rotate(-2deg); }
+  50% { transform: translateY(0) rotate(0deg); }
+  75% { transform: translateY(-1px) rotate(2deg); }
+}
+
+.animate-buddy-bob {
+  animation: buddyBob 3s ease-in-out infinite;
+}
+
+/* Buddy bot: quick wiggle while it's "thinking" */
+@keyframes buddyShake {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  20% { transform: translateX(-2px) rotate(-6deg); }
+  40% { transform: translateX(2px) rotate(6deg); }
+  60% { transform: translateX(-2px) rotate(-4deg); }
+  80% { transform: translateX(2px) rotate(4deg); }
+}
+
+.animate-buddy-shake {
+  animation: buddyShake 0.5s ease-in-out infinite;
+}
+
+/* Buddy bot: soft pulsing status dot */
+@keyframes buddyPing {
+  0% { transform: scale(1); opacity: 0.9; }
+  70%, 100% { transform: scale(2.2); opacity: 0; }
+}
+
+.animate-buddy-ping {
+  animation: buddyPing 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .animate-ticker {
+  .animate-ticker,
+  .animate-buddy-bob,
+  .animate-buddy-shake,
+  .animate-buddy-ping {
     animation: none !important;
   }
 }
