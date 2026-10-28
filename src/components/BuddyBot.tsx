@@ -83,7 +83,7 @@ export function BuddyBot({ userId }: { userId: string }) {
   if (!userId) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 z-[70] flex flex-col items-end gap-3">
+    <div className="fixed bottom-4 right-4 z-40 flex flex-col items-end gap-3">
       {open && (
         <div className="w-[min(92vw,380px)] h-[min(70vh,520px)] bg-card border-2 border-foreground hard-shadow flex flex-col overflow-hidden">
           <div className="flex items-center gap-2 px-3 py-2 border-b-2 border-foreground bg-accent text-accent-foreground">

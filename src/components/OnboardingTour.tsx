@@ -711,7 +711,7 @@ export function FeatureHelpButton({ currentTab }: FeatureHelpButtonProps) {
   return (
     <>
       {/* Help Button - Fixed bottom left (Buddy sits bottom right) */}
-      <div className="fixed bottom-4 left-4 z-[70]">
+      <div className="fixed bottom-4 left-4 z-40">
         {/* Wait message popup */}
         {showWaitMessage && (
           <span className="absolute -top-10 left-0 pointer-events-none whitespace-nowrap text-xs sm:text-sm font-bold bg-secondary text-secondary-foreground px-3 py-1.5 border-2 border-foreground hard-shadow-sm animate-usage-float">
