@@ -148,6 +148,7 @@ export const Pricing = ({ showCurrentPlan = false }: PricingProps) => {
               <li className="pt-2 flex items-center gap-2"><Check className="w-4 h-4 text-green-600" /> AI Chat</li>
               <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600" /> Summarizer</li>
               <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600" /> Flashcard generator</li>
+              <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600" /> Adaptive Tutor (practice)</li>
               <li className="flex items-center gap-2 text-muted-foreground"><XIcon className="w-4 h-4 text-red-500" /> Quiz generator</li>
               <li className="flex items-center gap-2 text-muted-foreground"><XIcon className="w-4 h-4 text-red-500" /> Lesson Generator</li>
               <li className="flex items-center gap-2 text-muted-foreground"><XIcon className="w-4 h-4 text-red-500" /> Career Launchpad</li>
@@ -180,6 +181,7 @@ export const Pricing = ({ showCurrentPlan = false }: PricingProps) => {
               <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600" /> Summarizer</li>
               <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600" /> Flashcard generator</li>
               <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600" /> Quiz generator</li>
+              <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600" /> Adaptive Tutor (practice)</li>
               <li className="flex items-center gap-2 text-muted-foreground"><XIcon className="w-4 h-4 text-red-500" /> Lesson Generator</li>
               <li className="flex items-center gap-2 text-muted-foreground"><XIcon className="w-4 h-4 text-red-500" /> Career Launchpad</li>
               <li className="flex items-center gap-2 text-muted-foreground"><XIcon className="w-4 h-4 text-red-500" /> Study Feed</li>
@@ -219,7 +221,7 @@ export const Pricing = ({ showCurrentPlan = false }: PricingProps) => {
               <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600" /> Summarizer</li>
               <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600" /> Flashcard generator</li>
               <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600" /> Quiz generator</li>
-              <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600" /> Lesson Generator</li>
+              <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600" /> Adaptive Tutor + Lesson Generator</li>
               <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600" /> Career Launchpad</li>
               <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600" /> Study Feed</li>
             </ul>
@@ -256,7 +258,7 @@ export const Pricing = ({ showCurrentPlan = false }: PricingProps) => {
               <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600" /> Summarizer</li>
               <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600" /> Flashcard generator</li>
               <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600" /> Quiz generator</li>
-              <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600" /> Lesson Generator</li>
+              <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600" /> Adaptive Tutor + Lesson Generator</li>
               <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600" /> Career Launchpad</li>
               <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600" /> Study Feed</li>
             </ul>

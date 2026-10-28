@@ -295,6 +295,7 @@ export const FEATURE_TOURS: Record<string, Step[]> = {
   ],
   // Adaptive Tutor tour
   tutor: [
+    { target: '[data-tour="tutor-modes"]', content: 'Two ways to learn in one place: Practice runs adaptive question sessions, Lesson generates full study lessons (Advanced/Pro).', title: '🧠 Practice or Lesson', disableBeacon: true, placement: 'auto' },
     { target: '[data-tour="tutor-new"]', content: 'Start a diagnostic session here. The tutor builds learning objectives from YOUR material, then adapts each question to what you actually understand.', title: '🧠 Adaptive Tutor', disableBeacon: true, placement: 'auto' },
     { target: '[data-tour="tutor-setup-source"]', content: 'Pick saved summaries or paste notes. The tutor grounds every question and explanation in this material, not generic trivia.', title: '📚 Source Material', disableBeacon: true, placement: 'auto' },
     { target: '[data-tour="tutor-question"]', content: 'Answer questions one at a time. After each answer you get feedback that targets your specific misconception, then the next question adapts.', title: '❓ Answer & Adapt', disableBeacon: true, placement: 'auto' },
@@ -367,9 +368,9 @@ const TOUR_STEPS: Step[] = [
     placement: 'auto',
   },
   {
-    target: '[data-tour="helper-tab"]',
-    content: 'Get comprehensive lesson plans with study schedules, homework, and practice problems.',
-    title: '🎓 Lesson Generator',
+    target: '[data-tour="tutor-tab"]',
+    content: 'Your AI tutor lives here: generate full lessons on any topic, then practice them with questions that adapt to what you understand.',
+    title: '🧠 Adaptive Tutor',
     disableBeacon: true,
     placement: 'auto',
   },
@@ -536,7 +537,7 @@ const TAB_TO_FEATURE: Record<string, string> = {
   quiz: 'quiz',
   quizzes: 'quiz',
   helper: 'helper',
-  plans: 'helper',
+  plans: 'tutor',
   career: 'career',
   feed: 'feed',
   tutor: 'tutor',

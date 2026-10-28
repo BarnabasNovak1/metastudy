@@ -102,7 +102,7 @@ const Index = () => {
             "featureList": [
               "AI Flashcard Generator from your own notes",
               "AI Quiz Maker with AI-graded short answers",
-              "Lesson Generator with custom study plans",
+              "Adaptive Tutor with generated lessons and adaptive practice",
               "AI Study Chat with personality modes",
               "AI Summarizer for dense materials",
               "Handwriting OCR from photos",

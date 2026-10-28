@@ -33,8 +33,8 @@ const featureList = [
   },
   {
     icon: BookOpen,
-    title: "Lesson Generator",
-    description: "Step-by-step lessons and study plans generated on whatever you're working through right now.",
+    title: "Adaptive Tutor",
+    description: "Generates full lessons on your topic, then quizzes you adaptively — every question shaped by what you actually understood.",
   },
   {
     icon: ScanText,

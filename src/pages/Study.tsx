@@ -42,10 +42,21 @@ const Study = () => {
   const navigate = useNavigate();
   const [tab, setTab] = useState<string>(() => {
     if (typeof window !== "undefined") {
-      return localStorage.getItem("study_tab") || "chat";
+      const saved = localStorage.getItem("study_tab") || "chat";
+      // 'plans' was merged into the tutor tab
+      return saved === "plans" ? "tutor" : saved;
     }
     return "chat";
   });
+  const [tutorMode, setTutorMode] = useState<'practice' | 'lesson'>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("tutor_mode") === "lesson" ? "lesson" : "practice";
+    }
+    return "practice";
+  });
+  useEffect(() => {
+    localStorage.setItem("tutor_mode", tutorMode);
+  }, [tutorMode]);
   
   useEffect(() => {
     localStorage.setItem("study_tab", tab);
@@ -804,7 +815,7 @@ const Study = () => {
           summarizer: "AI Text Summarizer | Study | MetaStudy",
           flashcards: "AI Flashcard Maker | Study | MetaStudy",
           quizzes: "AI Quiz Generator | Study | MetaStudy",
-          plans: "Lesson Generator, Plans & Lessons | Study | MetaStudy",
+          tutor: "Adaptive Tutor, Lessons & Practice | Study | MetaStudy",
           career: "AI Career Tools | Study | MetaStudy",
           feed: "Study Feed, Challenges & Community | Study | MetaStudy",
         };
@@ -813,7 +824,7 @@ const Study = () => {
           summarizer: "Paste text and get concise summaries or study notes for online learning.",
           flashcards: "Generate flashcards from your notes for faster memorization and studying.",
           quizzes: "Create practice quizzes from your notes and test your knowledge while studying.",
-          plans: "Create study plans and fun lessons tailored to your goals with MetaStudy.",
+          tutor: "Generate lessons and practice them with an AI tutor that adapts to your understanding.",
           career: "Build resumes, portfolios, LinkedIn posts, and practice interviews with AI.",
         };
         const current = titles[tab] || base;
@@ -823,7 +834,7 @@ const Study = () => {
           summarizer: window.location.origin + "/metastudy-icon.png",
           flashcards: window.location.origin + "/metastudy-icon.png",
           quizzes: window.location.origin + "/metastudy-icon.png",
-          plans: window.location.origin + "/metastudy-icon.png",
+          tutor: window.location.origin + "/metastudy-icon.png",
           career: window.location.origin + "/metastudy-icon.png",
         };
         const featureJsonLd = (() => {
@@ -846,7 +857,7 @@ const Study = () => {
             summarizer: { ...baseObj, name: "AI Text Summarizer", description: desc },
             flashcards: { ...baseObj, name: "AI Flashcard Generator", description: desc },
             quizzes: { ...baseObj, name: "AI Quiz Generator", description: desc },
-            plans: { ...baseObj, name: "Lesson Generator (Plans & Lessons)", description: desc },
+            tutor: { ...baseObj, name: "Adaptive Tutor (Lessons & Practice)", description: desc },
             career: { ...baseObj, name: "AI Career Launchpad", description: desc },
             feed: { ...baseObj, name: "Study Feed (Challenges)", description: desc },
           };
@@ -1003,15 +1014,9 @@ const Study = () => {
             setUpsellOpen(true);
             return;
           }
-          // Gate Lesson Generator behind studyPlans access (Advanced/Pro)
-          if (next === 'plans' && !gate?.studyPlans) {
-            setUpsellMsg('Lesson Generator and Career Launchpad are available on Advanced and higher plans. Upgrade to unlock these tools.');
-            setUpsellOpen(true);
-            return;
-          }
           // Gate Career behind Career access (Advanced/Pro)
           if (next === 'career' && !gate?.careerAccess) {
-            setUpsellMsg('Lesson Generator and Career Launchpad are available on Advanced and higher plans. Upgrade to unlock these tools.');
+            setUpsellMsg('Career Launchpad is available on Advanced and higher plans. Upgrade to unlock it.');
             setUpsellOpen(true);
             return;
           }
@@ -1026,7 +1031,7 @@ const Study = () => {
           }
           setTab(next);
         }} className="w-full">
-          <TabsList className="grid w-full grid-cols-8 mb-8 bg-background text-foreground" data-study-tabs="true">
+          <TabsList className="grid w-full grid-cols-7 mb-8 bg-background text-foreground" data-study-tabs="true">
             <TabsTrigger value="chat" data-tour="chat-tab" className="flex items-center justify-center gap-2 py-2 sm:py-3 text-xs sm:text-sm rounded-md transition-colors hover:bg-accent/50 data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">
               <MessageSquare className="w-4 h-4" />
               <span className="hidden sm:inline">AI Chat</span>
@@ -1047,15 +1052,6 @@ const Study = () => {
             >
               <ListChecks className="w-4 h-4" />
               <span className="hidden sm:inline">Quizzes</span>
-            </TabsTrigger>
-            <TabsTrigger
-              value="plans"
-              data-tour="helper-tab"
-              aria-disabled={!gate?.careerAccess}
-              className={`flex items-center justify-center gap-2 py-2 sm:py-3 text-xs sm:text-sm rounded-md transition-colors hover:bg-accent/50 data-[state=active]:bg-accent data-[state=active]:text-accent-foreground ${!gate?.careerAccess ? 'opacity-60 cursor-not-allowed' : ''}`}
-            >
-              <GraduationCap className="w-4 h-4" />
-              <span className="hidden sm:inline">Lesson</span>
             </TabsTrigger>
             <TabsTrigger
               value="career"
@@ -1099,16 +1095,40 @@ const Study = () => {
             <StudyQuiz ref={studyQuizRef} userId={user?.uid || ""} />
           </TabsContent>
 
-          <TabsContent value="plans" className="mt-0">
-            {gate?.careerAccess ? (
-              <StudyHelper ref={studyHelperRef} userId={user?.uid || ""} />
-            ) : (
-              <div className="min-h-[200px] flex items-center justify-center">
-                <div className="text-center space-y-2">
-                  <p className="text-sm text-muted-foreground">Lesson Generator is available on Advanced and Pro plans.</p>
-                  <Button onClick={() => { setUpsellMsg('Lesson Generator is included with the Career pack (Advanced/Pro). Upgrade to unlock Lesson Generator and Career tools.'); setUpsellOpen(true); }}>View Plans</Button>
+          <TabsContent value="tutor" className="mt-0">
+            {/* Tutor hub: adaptive practice + lesson generator share one feature surface */}
+            <div className="mb-6 inline-flex items-center gap-1 rounded-lg border border-border bg-background p-1" data-tour="tutor-modes">
+              <button
+                type="button"
+                onClick={() => setTutorMode('practice')}
+                className={`flex items-center gap-2 rounded-md px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium transition-colors ${tutorMode === 'practice' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent/50'}`}
+              >
+                <BrainCircuit className="w-4 h-4" />
+                Practice
+              </button>
+              <button
+                type="button"
+                onClick={() => setTutorMode('lesson')}
+                className={`flex items-center gap-2 rounded-md px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium transition-colors ${tutorMode === 'lesson' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent/50'}`}
+              >
+                <GraduationCap className="w-4 h-4" />
+                Lesson
+                {!gate?.studyPlans && <span className="text-[10px] uppercase tracking-wide text-muted-foreground/70">Advanced+</span>}
+              </button>
+            </div>
+            {tutorMode === 'lesson' ? (
+              gate?.studyPlans ? (
+                <StudyHelper ref={studyHelperRef} userId={user?.uid || ""} />
+              ) : (
+                <div className="min-h-[200px] flex items-center justify-center">
+                  <div className="text-center space-y-2">
+                    <p className="text-sm text-muted-foreground">Lesson Generator is available on Advanced and Pro plans.</p>
+                    <Button onClick={() => { setUpsellMsg('Lesson Generator is included with Advanced and Pro plans. Upgrade to generate full lessons, then practice them in the tutor.'); setUpsellOpen(true); }}>View Plans</Button>
+                  </div>
                 </div>
-              </div>
+              )
+            ) : (
+              <AdaptiveTutor userId={user?.uid || ""} />
             )}
           </TabsContent>
 
@@ -1133,10 +1153,6 @@ const Study = () => {
             )}
           </TabsContent>
 
-
-          <TabsContent value="tutor" className="mt-0">
-            <AdaptiveTutor userId={user?.uid || ""} />
-          </TabsContent>
 
           <TabsContent value="career" className="mt-0">
             {gate?.careerAccess ? (
@@ -1516,7 +1532,7 @@ const Study = () => {
       {user && !loading && <OnboardingTour />}
       
       {/* Feature Help Button */}
-      {user && !loading && <FeatureHelpButton currentTab={tab} />}
+      {user && !loading && <FeatureHelpButton currentTab={tab === 'tutor' && tutorMode === 'lesson' ? 'helper' : tab} />}
     </div>
   );
 };

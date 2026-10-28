@@ -246,7 +246,7 @@ export const CrossCreatePicker = ({ userId, open, onOpenChange, initialTab, allo
                     key={t}
                     value={t}
                     className="shrink-0 flex items-center justify-center gap-2 px-3 py-2 rounded-full text-xs sm:text-sm data-[state=active]:bg-accent data-[state=active]:text-accent-foreground"
-                    title={t === 'plans' ? 'Lesson Generator' : (t.charAt(0).toUpperCase() + t.slice(1))}
+                    title={t === 'plans' ? 'Lesson' : (t.charAt(0).toUpperCase() + t.slice(1))}
                     aria-label={t}
                   >
                     {t === 'summary' ? <BookOpen className="w-4 h-4" />
