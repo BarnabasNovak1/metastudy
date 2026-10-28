@@ -1053,6 +1053,10 @@ const Study = () => {
               <ListChecks className="w-4 h-4" />
               <span className="hidden sm:inline">Quizzes</span>
             </TabsTrigger>
+            <TabsTrigger value="tutor" data-tour="tutor-tab" className="flex items-center justify-center gap-2 py-2 sm:py-3 text-xs sm:text-sm rounded-md transition-colors hover:bg-accent/50 data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">
+              <BrainCircuit className="w-4 h-4" />
+              <span className="hidden sm:inline">Tutor</span>
+            </TabsTrigger>
             <TabsTrigger
               value="career"
               data-tour="career-tab"
@@ -1070,10 +1074,6 @@ const Study = () => {
             >
               <GraduationCap className="w-4 h-4" />
               <span className="hidden sm:inline">Feed</span>
-            </TabsTrigger>
-            <TabsTrigger value="tutor" data-tour="tutor-tab" className="flex items-center justify-center gap-2 py-2 sm:py-3 text-xs sm:text-sm rounded-md transition-colors hover:bg-accent/50 data-[state=active]:bg-accent data-[state=active]:text-accent-foreground">
-              <BrainCircuit className="w-4 h-4" />
-              <span className="hidden sm:inline">Tutor</span>
             </TabsTrigger>
           </TabsList>
 
@@ -1097,25 +1097,20 @@ const Study = () => {
 
           <TabsContent value="tutor" className="mt-0">
             {/* Tutor hub: adaptive practice + lesson generator share one feature surface */}
-            <div className="mb-6 inline-flex items-center gap-1 rounded-lg border border-border bg-background p-1" data-tour="tutor-modes">
-              <button
-                type="button"
-                onClick={() => setTutorMode('practice')}
-                className={`flex items-center gap-2 rounded-md px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium transition-colors ${tutorMode === 'practice' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent/50'}`}
-              >
-                <BrainCircuit className="w-4 h-4" />
-                Practice
-              </button>
-              <button
-                type="button"
-                onClick={() => setTutorMode('lesson')}
-                className={`flex items-center gap-2 rounded-md px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium transition-colors ${tutorMode === 'lesson' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent/50'}`}
-              >
-                <GraduationCap className="w-4 h-4" />
-                Lesson
-                {!gate?.studyPlans && <span className="text-[10px] uppercase tracking-wide text-muted-foreground/70">Advanced+</span>}
-              </button>
-            </div>
+            <Tabs value={tutorMode} onValueChange={(v) => setTutorMode(v as 'practice' | 'lesson')} className="w-full">
+              <TabsList className="grid w-full grid-cols-2" data-tour="tutor-modes">
+                <TabsTrigger value="practice">
+                  <BrainCircuit className="w-4 h-4 mr-2" />
+                  Practice
+                </TabsTrigger>
+                <TabsTrigger value="lesson">
+                  <GraduationCap className="w-4 h-4 mr-2" />
+                  Lesson Generator
+                  {!gate?.studyPlans && <span className="ml-2 text-[10px] uppercase tracking-wide text-muted-foreground/70">Advanced+</span>}
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+            <div className="mt-6">
             {tutorMode === 'lesson' ? (
               gate?.studyPlans ? (
                 <StudyHelper ref={studyHelperRef} userId={user?.uid || ""} />
@@ -1130,6 +1125,7 @@ const Study = () => {
             ) : (
               <AdaptiveTutor userId={user?.uid || ""} />
             )}
+            </div>
           </TabsContent>
 
           <TabsContent value="feed" className="mt-0">
